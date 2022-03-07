@@ -356,6 +356,10 @@ class System(ABC, LoggingBase):
             NotImplementedError: If the deployment variant is not supported
         """
         pass
+        
+    @abstractmethod
+    def create_workflow(self, code_package: Benchmark, workflow_name: str):
+        pass
 
     @abstractmethod
     def cached_function(self, function: Function):
@@ -565,6 +569,79 @@ class System(ABC, LoggingBase):
             else:
                 self.logging.info(f"Code of cached function: {func_name} is up to date.")
             return function
+            
+            
+    def get_workflow(self, code_package: Benchmark, workflow_name: Optional[str] = None):
+        if code_package.language_version not in self.system_config.supported_language_versions(
+            self.name(), code_package.language_name
+        ):
+            raise Exception(
+                "Unsupported {language} version {version} in {system}!".format(
+                    language=code_package.language_name,
+                    version=code_package.language_version,
+                    system=self.name(),
+                )
+            )
+
+        # if not workflow_name:
+        #     workflow_name = self.default_function_name(code_package)
+        rebuilt, _ = code_package.build(self.package_code)
+        
+        return self.create_workflow(code_package, workflow_name)
+        
+
+        """
+            There's no function with that name?
+            a) yes -> create new function. Implementation might check if a function
+            with that name already exists in the cloud and update its code.
+            b) no -> retrieve function from the cache. Function code in cloud will
+            be updated if the local version is different.
+        """
+        functions = code_package.functions
+        if not functions or func_name not in functions:
+            msg = (
+                "function name not provided."
+                if not func_name
+                else "function {} not found in cache.".format(func_name)
+            )
+            self.logging.info("Creating new function! Reason: " + msg)
+            function = self.create_function(code_package, func_name)
+            self.cache_client.add_function(
+                deployment_name=self.name(),
+                language_name=code_package.language_name,
+                code_package=code_package,
+                function=function,
+            )
+            code_package.query_cache()
+            return function
+        else:
+            # retrieve function
+            cached_function = functions[func_name]
+            code_location = code_package.code_location
+            function = self.function_type().deserialize(cached_function)
+            self.cached_function(function)
+            self.logging.info(
+                "Using cached function {fname} in {loc}".format(fname=func_name, loc=code_location)
+            )
+            # is the function up-to-date?
+            if function.code_package_hash != code_package.hash or rebuilt:
+                self.logging.info(
+                    f"Cached function {func_name} with hash "
+                    f"{function.code_package_hash} is not up to date with "
+                    f"current build {code_package.hash} in "
+                    f"{code_location}, updating cloud version!"
+                )
+                self.update_function(function, code_package)
+                function.code_package_hash = code_package.hash
+                function.updated_code = True
+                self.cache_client.add_function(
+                    deployment_name=self.name(),
+                    language_name=code_package.language_name,
+                    code_package=code_package,
+                    function=function,
+                )
+                code_package.query_cache()
+            return function
 
     @abstractmethod
     def update_function_configuration(self, cached_function: Function, benchmark: Benchmark):
@@ -694,6 +771,14 @@ class System(ABC, LoggingBase):
             metrics: Dictionary to store the downloaded metrics
         """
         pass
+        
+    def create_trigger(self, obj, trigger_type: Trigger.TriggerType) -> Trigger:
+        if isinstance(obj, Function):
+            self.create_function_trigger(obj, trigger_type)
+        elif isinstance(obj, Workflow):
+            self.create_workflow_trigger(obj, trigger_type)
+        else:
+            raise TypeError("Cannot create trigger for {obj}")
 
     @abstractmethod
     def create_trigger(self, function: Function, trigger_type: Trigger.TriggerType) -> Trigger:

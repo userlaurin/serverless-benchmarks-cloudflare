@@ -25,6 +25,9 @@ import datetime
 import json
 from typing import Dict, Optional  # noqa
 
+from google.cloud.workflows import executions_v1beta as workflow_executions
+from google.cloud.workflows.executions_v1beta.types import executions as workflow_exec_types
+
 from sebs.gcp.gcp import GCP
 from sebs.gcp.function import FunctionDeploymentType
 from sebs.faas.function import ExecutionResult, Trigger
@@ -73,7 +76,7 @@ class LibraryTrigger(Trigger):
             deployment_type: Optional deployment type (gen1 function or container)
         """
         super().__init__()
-        self.name = fname
+        self.name = name
         self._deployment_client = deployment_client
         self._deployment_type = deployment_type
 
@@ -217,6 +220,10 @@ class LibraryTrigger(Trigger):
         normalize_request_id(gcp_result)
 
         return gcp_result
+        
+        
+class WorkflowLibraryTrigger(LibraryTrigger):
+    def sync_invoke(self, payload: dict) -> ExecutionResult:
 
     def async_invoke(self, payload: Dict) -> concurrent.futures.Future:
         """Asynchronously invoke the Cloud Function.
