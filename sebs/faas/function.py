@@ -326,6 +326,13 @@ class ExecutionResult:
             )
             / timedelta(microseconds=1)
         )
+        
+    def parse_benchmark_execution(self, execution: Execution):
+        self.output = json.loads(execution.result)
+        self.times.benchmark = int(
+            (execution.start_time - execution.end_time)
+            / timedelta(microseconds=1)
+        )
 
     @staticmethod
     def deserialize(cached_config: dict) -> "ExecutionResult":

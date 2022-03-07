@@ -25,8 +25,8 @@ import datetime
 import json
 from typing import Dict, Optional  # noqa
 
-from google.cloud.workflows import executions_v1beta as workflow_executions
-from google.cloud.workflows.executions_v1beta.types import executions as workflow_exec_types
+from google.cloud.workflows.executions_v1beta import ExecutionsClient
+from google.cloud.workflows.executions_v1beta.types import Execution
 
 from sebs.gcp.gcp import GCP
 from sebs.gcp.function import FunctionDeploymentType
