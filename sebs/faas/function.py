@@ -521,7 +521,7 @@ class Trigger(ABC, LoggingBase):
         """
         pass
 
-    @staticmethod
+    @classmethod
     @abstractmethod
     def deserialize(cached_config: dict) -> "Trigger":
         """
