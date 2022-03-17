@@ -449,7 +449,7 @@ class Trigger(ABC, LoggingBase):
                     output = json.loads(output["body"])
 
             if status_code != 200:
-                self.logging.error("Invocation on URL {} failed!".format(url))
+                self.logging.error("Invocation on URL {} failed with status code {}!".format(url, status_code))
                 self.logging.error("Output: {}".format(output))
                 raise RuntimeError(f"Failed invocation of function! Output: {output}")
 
