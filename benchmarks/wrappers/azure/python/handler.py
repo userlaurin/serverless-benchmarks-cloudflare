@@ -22,7 +22,7 @@ if 'STORAGE_CONNECTION_STRING' in os.environ:
 
 # TODO: usual trigger
 # implement support for blob and others
-def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
+def main(req: func.HttpRequest, starter: str, context: func.Context) -> func.HttpResponse:    
     income_timestamp = datetime.datetime.now().timestamp()
     req_json = req.get_json()
 
@@ -31,7 +31,13 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     begin = datetime.datetime.now()
     # We are deployed in the same directory
     from . import function
-    ret = function.handler(req_json)
+    kwargs = {
+        'event': req_json,
+        'starter': starter,
+        'context': context
+    }
+    kwargs = {k:v for (k,v) in kwargs.items() if k in function.handler.__code__.co_varnames}
+    ret = function.handler(**kwargs)
     end = datetime.datetime.now()
 
     log_data = ret
