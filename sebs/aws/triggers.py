@@ -109,19 +109,22 @@ class LibraryTrigger(Trigger):
         serialized_payload = json.dumps(payload).encode("utf-8")
         client = self.deployment_client.get_lambda_client()
         begin = datetime.datetime.now()
-        ret = client.invoke(FunctionName=self.name, Payload=serialized_payload, LogType="Tail")
+        ret = client.invoke(FunctionName=self.name,
+                            Payload=serialized_payload, LogType="Tail")
         end = datetime.datetime.now()
 
         aws_result = ExecutionResult.from_times(begin, end)
         aws_result.request_id = ret["ResponseMetadata"]["RequestId"]
         if ret["StatusCode"] != 200:
             self.logging.error("Invocation of {} failed!".format(self.name))
-            self.logging.error("Input: {}".format(serialized_payload.decode("utf-8")))
+            self.logging.error("Input: {}".format(
+                serialized_payload.decode("utf-8")))
             aws_result.stats.failure = True
             return aws_result
         if "FunctionError" in ret:
             self.logging.error("Invocation of {} failed!".format(self.name))
-            self.logging.error("Input: {}".format(serialized_payload.decode("utf-8")))
+            self.logging.error("Input: {}".format(
+                serialized_payload.decode("utf-8")))
             aws_result.stats.failure = True
             return aws_result
         self.logging.debug(f"Invoke of function {self.name} was successful")
@@ -144,7 +147,8 @@ class LibraryTrigger(Trigger):
         if isinstance(function_output["body"], dict):
             aws_result.parse_benchmark_output(function_output["body"])
         else:
-            aws_result.parse_benchmark_output(json.loads(function_output["body"]))
+            aws_result.parse_benchmark_output(
+                json.loads(function_output["body"]))
         return aws_result
 
     def async_invoke(self, payload: dict) -> concurrent.futures.Future:
@@ -176,8 +180,10 @@ class LibraryTrigger(Trigger):
             LogType="Tail",
         )
         if ret["StatusCode"] != 202:
-            self.logging.error("Async invocation of {} failed!".format(self.name))
-            self.logging.error("Input: {}".format(serialized_payload.decode("utf-8")))
+            self.logging.error(
+                "Async invocation of {} failed!".format(self.name))
+            self.logging.error("Input: {}".format(
+                serialized_payload.decode("utf-8")))
             raise RuntimeError()
 
         # Create a completed future with the result

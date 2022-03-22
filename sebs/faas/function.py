@@ -299,7 +299,8 @@ class ExecutionResult:
         ret = ExecutionResult()
         ret.times.client_begin = client_time_begin
         ret.times.client_end = client_time_end
-        ret.times.client = int((client_time_end - client_time_begin) / timedelta(microseconds=1))
+        ret.times.client = int(
+            (client_time_end - client_time_begin) / timedelta(microseconds=1))
         return ret
 
     def parse_benchmark_output(self, output: dict):
@@ -326,7 +327,7 @@ class ExecutionResult:
             )
             / timedelta(microseconds=1)
         )
-        
+
     def parse_benchmark_execution(self, execution: Execution):
         self.output = json.loads(execution.result)
         self.times.benchmark = int(
@@ -348,7 +349,8 @@ class ExecutionResult:
         ret = ExecutionResult()
         ret.times = ExecutionTimes.deserialize(cached_config["times"])
         ret.billing = ExecutionBilling.deserialize(cached_config["billing"])
-        ret.provider_times = ProviderTimes.deserialize(cached_config["provider_times"])
+        ret.provider_times = ProviderTimes.deserialize(
+            cached_config["provider_times"])
         ret.stats = ExecutionStats.deserialize(cached_config["stats"])
         ret.request_id = cached_config["request_id"]
         ret.output = cached_config["output"]
@@ -447,32 +449,6 @@ class Trigger(ABC, LoggingBase):
                     output = output["body"]
                 else:
                     output = json.loads(output["body"])
-
-            if status_code != 200:
-                self.logging.error("Invocation on URL {} failed with status code {}!".format(url, status_code))
-                self.logging.error("Output: {}".format(output))
-                raise RuntimeError(f"Failed invocation of function! Output: {output}")
-
-            self.logging.debug("Invoke of function was successful")
-            result = ExecutionResult.from_times(begin, end)
-            result.times.http_startup = conn_time
-            result.times.http_first_byte_return = receive_time
-            # OpenWhisk will not return id on a failure
-            if "request_id" not in output:
-                raise RuntimeError(f"Cannot process allocation with output: {output}")
-            result.request_id = output["request_id"]
-            # General benchmark output parsing
-            result.parse_benchmark_output(output)
-            return result
-        except json.decoder.JSONDecodeError:
-            self.logging.error("Invocation on URL {} failed!".format(url))
-            if len(data.getvalue()) > 0:
-                self.logging.error("Output: {}".format(data.getvalue().decode()))
-            else:
-                self.logging.error("No output provided!")
-            raise RuntimeError(
-                f"Failed invocation of function! Output: {data.getvalue().decode()}"
-            ) from None
 
     @staticmethod
     @abstractmethod

@@ -220,8 +220,8 @@ class LibraryTrigger(Trigger):
         normalize_request_id(gcp_result)
 
         return gcp_result
-        
-        
+
+
 class WorkflowLibraryTrigger(LibraryTrigger):
     def sync_invoke(self, payload: dict) -> ExecutionResult:
 

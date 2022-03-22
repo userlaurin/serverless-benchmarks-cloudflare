@@ -355,7 +355,8 @@ class AWS(System):
         try:
             ret = self.client.get_function(FunctionName=func_name)
             self.logging.info(
-                "Function {} exists on AWS, retrieve configuration.".format(func_name)
+                "Function {} exists on AWS, retrieve configuration.".format(
+                    func_name)
             )
             # Here we assume a single Lambda role
             lambda_function = LambdaFunction(
@@ -689,7 +690,8 @@ class AWS(System):
                 return request_id
             output = requests[request_id]
         output.request_id = request_id
-        output.provider_times.execution = int(float(aws_vals["Duration"]) * 1000)
+        output.provider_times.execution = int(
+            float(aws_vals["Duration"]) * 1000)
         output.stats.memory_used = float(aws_vals["Max Memory Used"])
         if "Init Duration" in aws_vals:
             output.provider_times.initialization = int(float(aws_vals["Init Duration"]) * 1000)
@@ -801,12 +803,14 @@ class AWS(System):
                 time.sleep(5)
                 response = self.logs_client.get_query_results(queryId=query_id)
             if len(response["results"]) == 0:
-                self.logging.info("AWS logs are not yet available, repeat after 15s...")
+                self.logging.info(
+                    "AWS logs are not yet available, repeat after 15s...")
                 time.sleep(15)
                 response = None
             else:
                 break
-        self.logging.error(f"Invocation error for AWS Lambda function {function_name}")
+        self.logging.error(
+            f"Invocation error for AWS Lambda function {function_name}")
         for message in response["results"]:
             for value in message:
                 if value["field"] == "@message":

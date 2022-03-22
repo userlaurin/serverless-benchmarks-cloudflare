@@ -356,7 +356,7 @@ class System(ABC, LoggingBase):
             NotImplementedError: If the deployment variant is not supported
         """
         pass
-        
+
     @abstractmethod
     def create_workflow(self, code_package: Benchmark, workflow_name: str):
         pass
@@ -569,8 +569,7 @@ class System(ABC, LoggingBase):
             else:
                 self.logging.info(f"Code of cached function: {func_name} is up to date.")
             return function
-            
-            
+
     def get_workflow(self, code_package: Benchmark, workflow_name: Optional[str] = None):
         if code_package.language_version not in self.system_config.supported_language_versions(
             self.name(), code_package.language_name
@@ -586,10 +585,9 @@ class System(ABC, LoggingBase):
         # if not workflow_name:
         #     workflow_name = self.default_function_name(code_package)
         rebuilt, _ = code_package.build(self.package_code)
-        
+
         # FIXME: cache workflows
         return self.create_workflow(code_package, workflow_name)
-        
 
         """
             There's no function with that name?
@@ -622,7 +620,8 @@ class System(ABC, LoggingBase):
             function = self.function_type().deserialize(cached_function)
             self.cached_function(function)
             self.logging.info(
-                "Using cached function {fname} in {loc}".format(fname=func_name, loc=code_location)
+                "Using cached function {fname} in {loc}".format(
+                    fname=func_name, loc=code_location)
             )
             # is the function up-to-date?
             if function.code_package_hash != code_package.hash or rebuilt:
@@ -772,7 +771,7 @@ class System(ABC, LoggingBase):
             metrics: Dictionary to store the downloaded metrics
         """
         pass
-        
+
     def create_trigger(self, obj, trigger_type: Trigger.TriggerType) -> Trigger:
         if isinstance(obj, Function):
             return self.create_function_trigger(obj, trigger_type)
