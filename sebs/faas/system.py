@@ -584,7 +584,7 @@ class System(ABC, LoggingBase):
 
         # if not workflow_name:
         #     workflow_name = self.default_function_name(code_package)
-        rebuilt, _ = code_package.build(self.package_code)
+        rebuilt, _ = code_package.build(self.package_code, True)
 
         # FIXME: cache workflows
         return self.create_workflow(code_package, workflow_name)
