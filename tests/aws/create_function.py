@@ -63,7 +63,7 @@ class AWSCreateFunction(unittest.TestCase):
             benchmark = cls.client.get_benchmark(
                 cls.benchmark, cls.tmp_dir.name, deployment_client, experiment_config
             )
-            func_name = deployment_client.default_function_name(benchmark)
+            func_name = deployment_client.default_benchmark_name(benchmark)
             for suffix in cls.function_name_suffixes:
                 deployment_client.delete_function(func_name + suffix)
 
@@ -86,7 +86,7 @@ class AWSCreateFunction(unittest.TestCase):
             benchmark = cls.client.get_benchmark(
                 cls.benchmark, cls.tmp_dir.name, deployment_client, experiment_config
             )
-            func_name = deployment_client.default_function_name(benchmark)
+            func_name = deployment_client.default_benchmark_name(benchmark)
             for suffix in cls.function_name_suffixes:
                 deployment_client.delete_function(func_name + suffix)
 
@@ -126,7 +126,7 @@ class AWSCreateFunction(unittest.TestCase):
         for language in ["python", "nodejs"]:
             benchmark, deployment_client, experiment_config = self.generate_benchmark(tmp_dir, language)
 
-            func_name = deployment_client.default_function_name(benchmark) + self.function_name_suffixes[0]
+            func_name = deployment_client.default_benchmark_name(benchmark) + self.function_name_suffixes[0]
             func = deployment_client.get_function(benchmark, func_name)
             self.assertIsInstance(func, sebs.aws.LambdaFunction)
             self.assertEqual(func.name, func_name)
@@ -138,7 +138,7 @@ class AWSCreateFunction(unittest.TestCase):
             benchmark, deployment_client, experiment_config = self.generate_benchmark(tmp_dir, language)
 
             # generate default variant
-            func_name = deployment_client.default_function_name(benchmark) + self.function_name_suffixes[1]
+            func_name = deployment_client.default_benchmark_name(benchmark) + self.function_name_suffixes[1]
             func = deployment_client.get_function(benchmark, func_name)
             timestamp = os.path.getmtime(benchmark.code_location)
             self.assertIsInstance(func, sebs.aws.LambdaFunction)
@@ -170,7 +170,7 @@ class AWSCreateFunction(unittest.TestCase):
             benchmark, deployment_client, experiment_config = self.generate_benchmark(tmp_dir, language)
 
             # generate default variant
-            func_name = deployment_client.default_function_name(benchmark) + self.function_name_suffixes[2]
+            func_name = deployment_client.default_benchmark_name(benchmark) + self.function_name_suffixes[2]
             func = deployment_client.get_function(benchmark, func_name)
             timestamp = os.path.getmtime(benchmark.code_location)
             self.assertIsInstance(func, sebs.aws.LambdaFunction)
@@ -204,7 +204,7 @@ class AWSCreateFunction(unittest.TestCase):
             benchmark, deployment_client, experiment_config = self.generate_benchmark(tmp_dir, language)
 
             # generate default variant
-            func_name = deployment_client.default_function_name(benchmark) + self.function_name_suffixes[3]
+            func_name = deployment_client.default_benchmark_name(benchmark) + self.function_name_suffixes[3]
             func = deployment_client.get_function(benchmark, func_name)
             timestamp = os.path.getmtime(benchmark.code_location)
             self.assertIsInstance(func, sebs.aws.LambdaFunction)

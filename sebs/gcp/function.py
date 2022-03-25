@@ -187,7 +187,7 @@ class GCPFunction(Function):
 
         ret = GCPFunction(
             cached_config["name"],
-            cached_config["benchmark"],
+            cached_config["code_package"],
             cached_config["hash"],
             cfg,
             deployment_type,

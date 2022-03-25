@@ -40,8 +40,8 @@ class AWSInvokeFunctionHTTP(unittest.TestCase):
         bench_input = benchmark.prepare_input(
             storage=deployment_client.get_storage(), size="test"
         )
-        func = deployment_client.get_function(benchmark, '{}-http'.format(sebs.aws.AWS.default_function_name(benchmark)))
-        from sebs.faas.function import Trigger
+        func = deployment_client.get_function(benchmark, '{}-http'.format(sebs.aws.AWS.default_benchmark_name(benchmark)))
+        from sebs.faas.benchmark import Trigger
         deployment_client.create_trigger(func, Trigger.TriggerType.HTTP)
         self.invoke_sync(func, bench_input)
 
@@ -65,8 +65,8 @@ class AWSInvokeFunctionHTTP(unittest.TestCase):
         bench_input = benchmark.prepare_input(
             storage=deployment_client.get_storage(), size="test"
         )
-        func = deployment_client.get_function(benchmark, '{}-http'.format(sebs.aws.AWS.default_function_name(benchmark)))
-        from sebs.faas.function import Trigger
+        func = deployment_client.get_function(benchmark, '{}-http'.format(sebs.aws.AWS.default_benchmark_name(benchmark)))
+        from sebs.faas.benchmark import Trigger
         deployment_client.create_trigger(func, Trigger.TriggerType.HTTP)
         self.invoke_sync(func, bench_input)
 

@@ -51,7 +51,6 @@ from sebs.azure.workflow import AzureWorkflow
 from sebs.azure.config import AzureConfig, AzureResources
 from sebs.azure.system_resources import AzureSystemResources
 from sebs.azure.triggers import AzureTrigger, HTTPTrigger
-from sebs.faas.function import Trigger
 from sebs.code_package import CodePackage
 from sebs.cache import Cache
 from sebs.config import SeBSConfig
@@ -947,11 +946,11 @@ class Azure(System):
         # update existing function app
         self.update_function(function, code_package, system_variant, container_uri)
 
-        self.cache_client.add_function(
+        self.cache_client.add_benchmark(
             deployment_name=self.name(),
             language_name=language,
             code_package=code_package,
-            function=function,
+            benchmark=function,
         )
         return function
 
@@ -1046,12 +1045,12 @@ class Azure(System):
         # update existing function app
         self.update_function(workflow, code_package)
 
-        # self.cache_client.add_function(
-        #     deployment_name=self.name(),
-        #     language_name=language,
-        #     code_package=code_package,
-        #     function=function,
-        # )
+        self.cache_client.add_benchmark(
+            deployment_name=self.name(),
+            language_name=language,
+            code_package=code_package,
+            benchmark=workflow,
+        )
         return workflow
 
     def download_metrics(

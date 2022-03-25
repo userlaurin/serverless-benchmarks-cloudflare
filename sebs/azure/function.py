@@ -66,7 +66,7 @@ class AzureFunction(Function):
         cfg = FunctionConfig.deserialize(cached_config["config"])
         ret = AzureFunction(
             cached_config["name"],
-            cached_config["benchmark"],
+            cached_config["code_package"],
             cached_config["hash"],
             AzureResources.Storage.deserialize(cached_config["function_storage"]),
             cfg,

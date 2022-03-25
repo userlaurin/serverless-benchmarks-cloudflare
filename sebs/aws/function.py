@@ -104,7 +104,7 @@ class LambdaFunction(Function):
         cfg = FunctionConfig.deserialize(cached_config["config"])
         ret = LambdaFunction(
             cached_config["name"],
-            cached_config["benchmark"],
+            cached_config["code_package"],
             cached_config["arn"],
             cached_config["hash"],
             cached_config["runtime"],

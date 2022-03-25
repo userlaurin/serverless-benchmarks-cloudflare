@@ -36,7 +36,7 @@ from sebs.utils import LoggingBase, serialize
 
 if TYPE_CHECKING:
     from sebs.code_package import CodePackage
-    from sebs.faas.function import Function
+    from sebs.faas.benchmark import Benchmark
 
 
 def update(d: Dict[str, Any], u: Mapping[str, Any]) -> Dict[str, Any]:
@@ -174,7 +174,7 @@ class Cache(LoggingBase):
         self.config_updated: bool = False
         self.docker_client = docker_client
         self.cache_dir = os.path.abspath(cache_dir)
-        self.ignore_functions: bool = False
+        self.ignore_benchmarks: bool = False
         self.ignore_storage: bool = False
         self._lock = self._cache_dir_lock(self.cache_dir)
         if not os.path.exists(self.cache_dir):
@@ -452,8 +452,8 @@ class Cache(LoggingBase):
             Optional[Dict[str, Any]]: Function configurations or None if not found.
         """
         cfg = self.get_benchmark_config(deployment, benchmark)
-        if cfg and language in cfg and not self.ignore_functions:
-            return cfg[language]["functions"]
+        if cfg and language in cfg and not self.ignore_benchmarks:
+            return cfg[language]["benchmarks"]
         else:
             return None
 
@@ -960,7 +960,7 @@ class Cache(LoggingBase):
             else:
                 self.add_code_package(deployment_name, code_package)
 
-    def add_function(
+    def add_benchmark(
         self,
         deployment_name: str,
         language_name: str,
@@ -989,7 +989,7 @@ class Cache(LoggingBase):
             cache_config = os.path.join(benchmark_dir, "config.json")
 
             if os.path.exists(cache_config):
-                functions_config: Dict[str, Any] = {function.name: {**function.serialize()}}
+                benchmarks_config: Dict[str, Any] = {benchmark.name: {**benchmark.serialize()}}
 
                 with open(cache_config, "r") as fp:
                     cached_config = json.load(fp)
@@ -1002,14 +1002,14 @@ class Cache(LoggingBase):
                     elif "functions" not in cached_config[deployment_name][language]:
                         cached_config[deployment_name][language]["functions"] = functions_config
                     else:
-                        cached_config[deployment_name][language]["functions"].update(
-                            functions_config
+                        cached_config[deployment_name][language]["benchmarks"].update(
+                            benchmarks_config
                         )
                     config = cached_config
                 self._write_serialized_atomic(cache_config, config)
             else:
                 raise RuntimeError(
-                    "Can't cache function {} for a non-existing code package!".format(function.name)
+                    "Can't cache benchmark {} for a non-existing code package!".format(function.name)
                 )
 
     def update_function(self, function: "Function") -> None:
@@ -1027,7 +1027,7 @@ class Cache(LoggingBase):
         if self.ignore_functions:
             return
         with self._lock:
-            benchmark_dir = os.path.join(self.cache_dir, function.benchmark)
+            benchmark_dir = os.path.join(self.cache_dir, benchmark.code_package)
             cache_config = os.path.join(benchmark_dir, "config.json")
 
             if os.path.exists(cache_config):
@@ -1035,15 +1035,15 @@ class Cache(LoggingBase):
                     cached_config = json.load(fp)
                     for deployment, cfg in cached_config.items():
                         for language, cfg2 in cfg.items():
-                            if "functions" not in cfg2:
+                            if "benchmarks" not in cfg2:
                                 continue
-                            for name, func in cfg2["functions"].items():
+                            for name, func in cfg2["benchmarks"].items():
                                 if name == function.name:
-                                    cached_config[deployment][language]["functions"][
+                                    cached_config[deployment][language]["benchmarks"][
                                         name
                                     ] = function.serialize()
                 self._write_serialized_atomic(cache_config, cached_config)
             else:
                 raise RuntimeError(
-                    "Can't cache function {} for a non-existing code package!".format(function.name)
+                    "Can't cache benchmark {} for a non-existing code package!".format(function.name)
                 )

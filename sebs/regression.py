@@ -248,7 +248,7 @@ class TestSequenceMeta(type):
 
                 # Get or create the function
                 func = deployment_client.get_function(
-                    benchmark, deployment_client.default_function_name(benchmark)
+                    benchmark, deployment_client.default_benchmark_name(benchmark)
                 )
 
                 # Test each trigger type

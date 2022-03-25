@@ -182,7 +182,7 @@ class InvocationOverhead(Experiment):
         """
         # Import needed modules
         from sebs import SeBS  # noqa
-        from sebs.faas.function import Trigger
+        from sebs.faas.benchmark import Trigger
 
         # Get the clock-synchronization benchmark
         self._benchmark = sebs_client.get_benchmark(
