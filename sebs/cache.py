@@ -35,7 +35,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple, TYPE_CHECKING  # n
 from sebs.utils import LoggingBase, serialize
 
 if TYPE_CHECKING:
-    from sebs.benchmark import Benchmark
+    from sebs.code_package import CodePackage
     from sebs.faas.function import Function
 
 
@@ -871,7 +871,7 @@ class Cache(LoggingBase):
             else:
                 raise RuntimeError(
                     "Cached application {} for {} already exists!".format(
-                        code_package.benchmark, deployment_name
+                        code_package.name, deployment_name
                     )
                 )
 
@@ -964,7 +964,7 @@ class Cache(LoggingBase):
         self,
         deployment_name: str,
         language_name: str,
-        code_package: "Benchmark",
+        code_package: "CodePackage",
         function: "Function",
     ) -> None:
         """Add new function to cache.

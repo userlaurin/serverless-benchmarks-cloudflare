@@ -17,7 +17,7 @@ import uuid
 
 import docker
 
-from sebs.benchmark import Benchmark
+from sebs.code_package import CodePackage
 from sebs.cache import Cache
 from sebs.config import SeBSConfig
 from sebs.experiments.config import SystemVariant
@@ -570,7 +570,7 @@ class System(ABC, LoggingBase):
                 self.logging.info(f"Code of cached function: {func_name} is up to date.")
             return function
 
-    def get_workflow(self, code_package: Benchmark, workflow_name: Optional[str] = None):
+    def get_workflow(self, code_package: CodePackage, workflow_name: Optional[str] = None):
         if code_package.language_version not in self.system_config.supported_language_versions(
             self.name(), code_package.language_name
         ):
@@ -596,8 +596,8 @@ class System(ABC, LoggingBase):
             b) no -> retrieve function from the cache. Function code in cloud will
             be updated if the local version is different.
         """
-        functions = code_package.functions
-        if not functions or func_name not in functions:
+        benchmarks = code_package.benchmarks
+        if not benchmarks or func_name not in benchmarks:
             msg = (
                 "function name not provided."
                 if not func_name
@@ -615,7 +615,7 @@ class System(ABC, LoggingBase):
             return function
         else:
             # retrieve function
-            cached_function = functions[func_name]
+            cached_function = benchmarks[func_name]
             code_location = code_package.code_location
             function = self.function_type().deserialize(cached_function)
             self.cached_function(function)

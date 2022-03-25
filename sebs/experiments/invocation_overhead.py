@@ -23,7 +23,7 @@ import time
 from datetime import datetime
 from typing import Dict, List, TYPE_CHECKING, Union
 
-from sebs.benchmark import Benchmark
+from sebs.code_package import CodePackage
 from sebs.faas.system import System as FaaSSystem
 from sebs.experiments.experiment import Experiment
 from sebs.experiments.config import Config as ExperimentConfig
@@ -65,7 +65,7 @@ class CodePackageSize:
             settings["code_package_end"],
             settings["code_package_points"],
         )
-        from sebs.utils import find_benchmark
+        from sebs.utils import find_package_code
 
         # Use the clock synchronization benchmark as a base
         self._benchmark_path = find_benchmark("030.clock-synchronization", "benchmarks")

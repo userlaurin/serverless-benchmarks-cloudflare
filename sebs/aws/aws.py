@@ -26,7 +26,7 @@ from sebs.aws.container import ECRContainer
 from sebs.aws.config import AWSConfig
 from sebs.faas.config import Resources
 from sebs.utils import execute
-from sebs.benchmark import Benchmark
+from sebs.code_package import CodePackage
 from sebs.cache import Cache
 from sebs.config import SeBSConfig
 from sebs.experiments.config import SystemVariant
@@ -343,8 +343,8 @@ class AWS(System):
         benchmark = code_package.benchmark
         language = code_package.language
         language_runtime = code_package.language_version
-        timeout = code_package.benchmark_config.timeout
-        memory = code_package.benchmark_config.memory
+        timeout = code_package.config.timeout
+        memory = code_package.config.memory
         code_size = code_package.code_size
         code_bucket: Optional[str] = None
         func_name = AWS.format_function_name(func_name)
@@ -361,7 +361,7 @@ class AWS(System):
             # Here we assume a single Lambda role
             lambda_function = LambdaFunction(
                 func_name,
-                code_package.benchmark,
+                code_package.name,
                 ret["Configuration"]["FunctionArn"],
                 code_package.hash,
                 language_runtime,
@@ -425,7 +425,7 @@ class AWS(System):
 
             lambda_function = LambdaFunction(
                 func_name,
-                code_package.benchmark,
+                code_package.name,
                 ret["FunctionArn"],
                 code_package.hash,
                 language_runtime,

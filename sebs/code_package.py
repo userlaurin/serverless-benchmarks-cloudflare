@@ -562,7 +562,7 @@ class Benchmark(LoggingBase):
 
     def __init__(
         self,
-        benchmark: str,
+        name: str,
         deployment_name: str,
         config: "ExperimentConfig",
         system_config: SeBSConfig,
@@ -594,7 +594,7 @@ class Benchmark(LoggingBase):
             RuntimeError: If the benchmark is not found or doesn't support the language
         """
         super().__init__()
-        self._benchmark = benchmark
+        self._name = name
         self._deployment_name = deployment_name
         self._experiment_config = config
         self._language = config.runtime.language
@@ -762,11 +762,11 @@ class Benchmark(LoggingBase):
             language=self.language,
         )
 
-        if self._code_package is not None:
+        if self._payload is not None:
             # compare hashes
             current_hash = self.hash
-            old_hash = self._code_package["hash"]
-            self._code_size = self._code_package["size"]
+            old_hash = self._payload["hash"]
+            self._code_size = self._payload["size"]
             self._is_cached = True
             self._is_cached_valid = current_hash == old_hash
         else:
@@ -863,8 +863,8 @@ class Benchmark(LoggingBase):
         """
         cmd = "/bin/bash '{benchmark_path}/init.sh' '{output_dir}' false {architecture}"
         paths = [
-            self.benchmark_path,
-            os.path.join(self.benchmark_path, self.language_name),
+            self.path,
+            os.path.join(self.path, self.language_name),
         ]
         for path in paths:
             if os.path.exists(os.path.join(path, "init.sh")):
@@ -1410,9 +1410,9 @@ class Benchmark(LoggingBase):
             if not self.is_cached
             else "cached code package is not up to date/build enforced."
         )
-        self.logging.info("Building benchmark {}. Reason: {}".format(self.benchmark, msg))
+        self.logging.info("Building benchmark {}. Reason: {}".format(self.name, msg))
         # clear existing cache information
-        self._code_package = None
+        self._payload = None
 
         # create directory to be deployed
         if os.path.exists(self._output_dir):
@@ -1721,7 +1721,7 @@ class Benchmark(LoggingBase):
         if not self.system_variant.is_container and self.code_package_is_archive():
             assert self.code_location is not None
             self._update_zip(self.code_location, filename, data)
-            new_size = self.code_package_recompute_size() / 1024.0 / 1024.0
+            new_size = self.recompute_size() / 1024.0 / 1024.0
             self.logging.info(f"Modified zip package {self.code_location}, new size {new_size} MB")
         else:
             raise NotImplementedError()
@@ -1926,7 +1926,7 @@ def load_benchmark_input(benchmark_path: str) -> BenchmarkModuleInterface:
     import importlib.machinery
     import importlib.util
 
-    loader = importlib.machinery.SourceFileLoader("input", os.path.join(benchmark_path, "input.py"))
+    loader = importlib.machinery.SourceFileLoader("input", os.path.join(path, "input.py"))
     spec = importlib.util.spec_from_loader(loader.name, loader)
     assert spec
     mod = importlib.util.module_from_spec(spec)

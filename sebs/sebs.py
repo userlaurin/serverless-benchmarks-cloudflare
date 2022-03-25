@@ -21,7 +21,7 @@ from sebs import sebs_types as types
 from sebs.local import Local
 from sebs.cache import Cache
 from sebs.config import SeBSConfig
-from sebs.benchmark import Benchmark
+from sebs.code_package import CodePackage
 from sebs.faas.system import System as FaaSSystem
 from sebs.faas.storage import PersistentStorage
 from sebs.faas.nosql import NoSQLStorage
@@ -371,7 +371,7 @@ class SeBS(LoggingBase):
         benchmark.logging_handlers = self.generate_logging_handlers(
             logging_filename=logging_filename
         )
-        return benchmark
+        return code_package
 
     @staticmethod
     def get_storage_implementation(storage_type: types.Storage) -> Type[PersistentStorage]:

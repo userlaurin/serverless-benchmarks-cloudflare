@@ -52,7 +52,7 @@ from sebs.azure.config import AzureConfig, AzureResources
 from sebs.azure.system_resources import AzureSystemResources
 from sebs.azure.triggers import AzureTrigger, HTTPTrigger
 from sebs.faas.function import Trigger
-from sebs.benchmark import Benchmark
+from sebs.code_package import CodePackage
 from sebs.cache import Cache
 from sebs.config import SeBSConfig
 from sebs.experiments.config import SystemVariant
@@ -422,7 +422,7 @@ class Azure(System):
         json.dump(default_host_json, open(
             os.path.join(directory, "host.json"), "w"), indent=2)
 
-        code_size = Benchmark.directory_size(directory)
+        code_size = CodePackage.directory_size(directory)
         execute("zip -qu -r9 {}.zip * .".format(benchmark),
                 shell=True, cwd=directory)
         return directory, code_size
@@ -938,7 +938,7 @@ class Azure(System):
                         raise e from None
         function = AzureFunction(
             name=func_name,
-            benchmark=code_package.benchmark,
+            benchmark=code_package.name,
             code_hash=code_package.hash,
             function_storage=function_storage_account,
             cfg=function_cfg,
@@ -970,7 +970,7 @@ class Azure(System):
             azure_trigger.logging_handlers = self.logging_handlers
             azure_trigger.data_storage_account = data_storage_account
 
-    def create_workflow(self, code_package: Benchmark, workflow_name: str) -> AzureFunction:
+    def create_workflow(self, code_package: CodePackage, workflow_name: str) -> AzureFunction:
 
         language = code_package.language_name
         language_runtime = code_package.language_version
@@ -1038,7 +1038,7 @@ class Azure(System):
                         raise
         workflow = AzureWorkflow(
             name=workflow_name,
-            benchmark=code_package.benchmark,
+            benchmark=code_package.name,
             code_hash=code_package.hash,
             function_storage=function_storage_account,
         )
