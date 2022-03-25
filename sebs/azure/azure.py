@@ -946,12 +946,6 @@ class Azure(System):
         # update existing function app
         self.update_function(function, code_package, system_variant, container_uri)
 
-        self.cache_client.add_benchmark(
-            deployment_name=self.name(),
-            language_name=language,
-            code_package=code_package,
-            benchmark=function,
-        )
         return function
 
     def cached_function(self, function: Function) -> None:
@@ -1045,12 +1039,6 @@ class Azure(System):
         # update existing function app
         self.update_function(workflow, code_package)
 
-        self.cache_client.add_benchmark(
-            deployment_name=self.name(),
-            language_name=language,
-            code_package=code_package,
-            benchmark=workflow,
-        )
         return workflow
 
     def download_metrics(

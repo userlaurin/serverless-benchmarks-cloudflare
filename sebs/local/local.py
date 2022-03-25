@@ -81,6 +81,10 @@ class Local(System):
         """
         return LocalFunction
 
+    @staticmethod
+    def workflow_type() -> "Type[Workflow]":
+        raise NotImplementedError()
+
     @property
     def config(self) -> LocalConfig:
         """Get the local platform configuration.

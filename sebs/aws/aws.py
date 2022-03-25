@@ -83,6 +83,10 @@ class AWS(System):
         """
         return LambdaFunction
 
+    @staticmethod
+    def workflow_type() -> "Type[Workflow]":
+        return SFNWorkflow
+
     @property
     def config(self) -> AWSConfig:
         """
@@ -459,10 +463,10 @@ class AWS(System):
         """
         from sebs.aws.triggers import LibraryTrigger
 
-        for trigger in function.triggers(Trigger.TriggerType.LIBRARY):
+        for trigger in benchmark.triggers(Trigger.TriggerType.LIBRARY):
             trigger.logging_handlers = self.logging_handlers
             cast(LibraryTrigger, trigger).deployment_client = self
-        for trigger in function.triggers(Trigger.TriggerType.HTTP):
+        for trigger in benchmark.triggers(Trigger.TriggerType.HTTP):
             trigger.logging_handlers = self.logging_handlers
 
     def update_function(

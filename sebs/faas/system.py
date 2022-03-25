@@ -582,12 +582,9 @@ class System(ABC, LoggingBase):
                 )
             )
 
-        # if not workflow_name:
-        #     workflow_name = self.default_benchmark_name(code_package)
+        if not workflow_name:
+            workflow_name = self.default_benchmark_name(code_package)
         rebuilt, _ = code_package.build(self.package_code, True)
-
-        # FIXME: cache workflows
-        return self.create_workflow(code_package, workflow_name)
 
         """
             There's no function with that name?
@@ -597,51 +594,51 @@ class System(ABC, LoggingBase):
             be updated if the local version is different.
         """
         benchmarks = code_package.benchmarks
-        if not benchmarks or func_name not in benchmarks:
+        if not benchmarks or workflow_name not in benchmarks:
             msg = (
-                "function name not provided."
-                if not func_name
-                else "function {} not found in cache.".format(func_name)
+                "workflow name not provided."
+                if not workflow_name
+                else "workflow {} not found in cache.".format(workflow_name)
             )
-            self.logging.info("Creating new function! Reason: " + msg)
-            function = self.create_function(code_package, func_name)
+            self.logging.info("Creating new workflow! Reason: " + msg)
+            workflow = self.create_workflow(code_package, workflow_name)
             self.cache_client.add_benchmark(
                 deployment_name=self.name(),
                 language_name=code_package.language_name,
                 code_package=code_package,
-                benchmark=function,
+                benchmark=workflow,
             )
             code_package.query_cache()
-            return function
+            return workflow
         else:
             # retrieve function
-            cached_function = benchmarks[func_name]
+            cached_workflow = benchmarks[workflow_name]
             code_location = code_package.code_location
-            function = self.function_type().deserialize(cached_function)
-            self.cached_function(function)
+            workflow = self.workflow_type().deserialize(cached_workflow)
+            self.cached_benchmark(workflow)
             self.logging.info(
-                "Using cached function {fname} in {loc}".format(
-                    fname=func_name, loc=code_location)
+                "Using cached workflow {workflow_name} in {loc}".format(
+                    workflow_name=workflow_name, loc=code_location)
             )
             # is the function up-to-date?
-            if function.code_package_hash != code_package.hash or rebuilt:
+            if workflow.code_package_hash != code_package.hash or rebuilt:
                 self.logging.info(
-                    f"Cached function {func_name} with hash "
-                    f"{function.code_package_hash} is not up to date with "
+                    f"Cached workflow {workflow_name} with hash "
+                    f"{workflow.code_package_hash} is not up to date with "
                     f"current build {code_package.hash} in "
                     f"{code_location}, updating cloud version!"
                 )
-                self.update_function(function, code_package)
-                function.code_package_hash = code_package.hash
-                function.updated_code = True
+                self.update_workflow(workflow, code_package)
+                workflow.code_package_hash = code_package.hash
+                workflow.updated_code = True
                 self.cache_client.add_benchmark(
                     deployment_name=self.name(),
                     language_name=code_package.language_name,
                     code_package=code_package,
-                    benchmark=function,
+                    benchmark=workflow,
                 )
                 code_package.query_cache()
-            return function
+            return workflow
 
     @abstractmethod
     def update_function_configuration(self, cached_function: Function, benchmark: Benchmark):
