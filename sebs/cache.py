@@ -1038,12 +1038,12 @@ class Cache(LoggingBase):
                             if "benchmarks" not in cfg2:
                                 continue
                             for name, func in cfg2["benchmarks"].items():
-                                if name == function.name:
+                                if name == benchmark.name:
                                     cached_config[deployment][language]["benchmarks"][
                                         name
                                     ] = function.serialize()
                 self._write_serialized_atomic(cache_config, cached_config)
             else:
                 raise RuntimeError(
-                    "Can't cache benchmark {} for a non-existing code package!".format(function.name)
+                    "Can't cache benchmark {} for a non-existing code package!".format(benchmark.name)
                 )

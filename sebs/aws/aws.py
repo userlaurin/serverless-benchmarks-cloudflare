@@ -247,6 +247,7 @@ class AWS(System):
             Language.PYTHON: ["handler.py", "requirements.txt", ".python_packages"],
             Language.NODEJS: ["handler.js", "package.json", "node_modules"],
         }
+        package_config = CONFIG_FILES[language_name]
 
         if language in [Language.PYTHON, Language.NODEJS]:
             package_config = CONFIG_FILES[language]
