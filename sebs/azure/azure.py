@@ -348,7 +348,7 @@ class Azure(System):
     # - function.json
     # host.json
     # requirements.txt/package.json
-    def package_code(self, directory: str, language_name: str, benchmark: str, is_workflow: bool) -> Tuple[str, int]:
+    def package_code(self, code_package: CodePackage, directory: str, is_workflow: bool) -> Tuple[str, int]:
 
         # In previous step we ran a Docker container which installed packages
         # Python packages are in .python_packages because this is expected by Azure
@@ -357,72 +357,108 @@ class Azure(System):
             "python": ["requirements.txt", ".python_packages"],
             "nodejs": ["package.json", "node_modules"],
         }
-        SUPPORTING_FILES = ["function", "storage"]
-        WRAPPER_FILES = ["handler"] + SUPPORTING_FILES
-        file_type = FILES[language_name]
-        package_config = CONFIG_FILES[language_name]
+        WRAPPER_FILES = {
+            "python": ["handler.py", "storage.py"],
+            "nodejs": ["handler.js", "storage.js"]
+        }
+        file_type = FILES[code_package.language_name]
+        package_config = CONFIG_FILES[code_package.language_name]
+        wrapper_files = WRAPPER_FILES[code_package.language_name]
+
+        main_path = os.path.join(directory, "main_workflow.py")
+        if is_workflow:
+            os.rename(main_path, os.path.join(directory, "main.py"))
+
+            # Make sure we have a valid workflow benchmark
+            definition_path = os.path.join(
+                code_package.path, "definition.json")
+            if not os.path.exists(definition_path):
+                raise ValueError(
+                    f"No workflow definition found for {workflow_name}")
+
+            # Generate workflow code and append it to handler.py
+            gen = AzureGenerator()
+            gen.parse(definition_path)
+            code = gen.generate()
+
+            orchestrator_path = os.path.join(directory, "run_workflow.py")
+            with open(orchestrator_path, "w") as f:
+                f.writelines(code)
+        else:
+            os.remove(main_path)
 
         # TODO: extension to other triggers than HTTP
-        default_function_json = {
-            "bindings": [
-                {
-                    "authLevel": "function",
-                    "type": "httpTrigger",
-                    "direction": "in",
-                    "name": "req",
-                    "methods": ["get", "post"],
-                },
-                {"name": "starter", "type": "durableClient", "direction": "in"},
-                {"name": "$return", "type": "http", "direction": "out"},
-            ],
-        }
+        main_bindings = [
+            {"name": "req", "type": "httpTrigger", "direction": "in",
+             "authLevel": "function", "methods": ["post"]},
+            {"name": "starter", "type": "durableClient", "direction": "in"},
+            {"name": "$return", "type": "http", "direction": "out"}
+        ]
 
+        activity_bindings = [
+            {"name": "event", "type": "activityTrigger", "direction": "in"},
+            {"name": "$return", "type": "blob", "direction": "out"},
+        ]
+        orchestrator_bindings = [
+            {"name": "context", "type": "orchestrationTrigger", "direction": "in"}
+        ]
+
+        if is_workflow:
+            bindings = {
+                "main": main_bindings,
+                "run_workflow": orchestrator_bindings
+            }
+        else:
+            bindings = {"function": main_bindings}
+
+        func_dirs = []
         for file_path in glob.glob(os.path.join(directory, file_type)):
             file = os.path.basename(file_path)
 
-            if file in package_config:
+            if file in package_config or file in wrapper_files:
                 continue
 
             # move file directory/f.py to directory/f/f.py
             name, ext = os.path.splitext(file)
-            if name in WRAPPER_FILES:
-                func_dir = os.path.join(directory, "handler")
-            else:
-                func_dir = os.path.join(directory, name)
+            func_dir = os.path.join(directory, name)
+            func_dirs.append(func_dir)
 
             dst_file = os.path.join(func_dir, file)
             src_file = os.path.join(directory, file)
-            if not os.path.exists(func_dir):
-                os.makedirs(func_dir)
+            os.makedirs(func_dir)
             shutil.move(src_file, dst_file)
 
-            # generate function.json if none provided
-            # we don't do this for supporting files
-            if name in SUPPORTING_FILES:
-                continue
-
-            src_json = os.path.join(directory, name+".json")
+            # generate function.json
+            script_file = file if (name in bindings and is_workflow) else "handler.py"
+            payload = {
+                "bindings": bindings.get(name, activity_bindings),
+                "scriptFile": script_file,
+                "disabled": False
+            }
             dst_json = os.path.join(os.path.dirname(dst_file), "function.json")
+            json.dump(payload, open(dst_json, "w"), indent=2)
 
-            if os.path.exists(src_json):
-                shutil.move(src_json, dst_json)
-            else:
-                default_function_json["scriptFile"] = file
-                json.dump(default_function_json, open(dst_json, "w"), indent=2)
+        # copy every wrapper file to respective function dirs
+        for wrapper_file in wrapper_files:
+            src_path = os.path.join(directory, wrapper_file)
+            for func_dir in func_dirs:
+                dst_path = os.path.join(func_dir, wrapper_file)
+                shutil.copyfile(src_path, dst_path)
+            os.remove(src_path)
 
         # generate host.json
-        default_host_json = {
+        host_json = {
             "version": "2.0",
             "extensionBundle": {
                 "id": "Microsoft.Azure.Functions.ExtensionBundle",
                 "version": "[2.*, 3.0.0)"
             },
         }
-        json.dump(default_host_json, open(
+        json.dump(host_json, open(
             os.path.join(directory, "host.json"), "w"), indent=2)
 
         code_size = CodePackage.directory_size(directory)
-        execute("zip -qu -r9 {}.zip * .".format(benchmark),
+        execute("zip -qu -r9 {}.zip * .".format(code_package.name),
                 shell=True, cwd=directory)
         return directory, code_size
 
@@ -964,7 +1000,6 @@ class Azure(System):
             azure_trigger.data_storage_account = data_storage_account
 
     def create_workflow(self, code_package: CodePackage, workflow_name: str) -> AzureFunction:
-
         language = code_package.language_name
         language_runtime = code_package.language_version
         resource_group = self.config.resources.resource_group(

@@ -1421,7 +1421,7 @@ class Benchmark(LoggingBase):
 
         self.copy_code(self._output_dir)
         self.add_benchmark_data(self._output_dir)
-        self.add_deployment_files(self._output_dir)
+        self.add_deployment_files(self._output_dir, is_workflow)
         self.add_deployment_package(self._output_dir)
 
         """
