@@ -361,7 +361,7 @@ class Azure(System):
             "nodejs": ["package.json", "node_modules"],
         }
         WRAPPER_FILES = {
-            "python": ["handler.py", "storage.py"],
+            "python": ["handler.py", "storage.py", "fsm.py"],
             "nodejs": ["handler.js", "storage.js"]
         }
         file_type = FILES[code_package.language_name]
@@ -373,20 +373,14 @@ class Azure(System):
             os.rename(main_path, os.path.join(directory, "main.py"))
 
             # Make sure we have a valid workflow benchmark
-            definition_path = os.path.join(
+            src_path = os.path.join(
                 code_package.path, "definition.json")
-            if not os.path.exists(definition_path):
+            if not os.path.exists(src_path):
                 raise ValueError(
                     f"No workflow definition found for {workflow_name}")
 
-            # Generate workflow code and append it to handler.py
-            gen = AzureGenerator()
-            gen.parse(definition_path)
-            code = gen.generate()
-
-            orchestrator_path = os.path.join(directory, "run_workflow.py")
-            with open(orchestrator_path, "w") as f:
-                f.writelines(code)
+            dst_path = os.path.join(directory, "definition.json")
+            shutil.copy2(src_path, dst_path)
         else:
             os.remove(main_path)
 
@@ -1036,6 +1030,8 @@ class Azure(System):
                     " --name {workflow_name} "
                 ).format(**config)
             )
+            print(json.loads(ret.decode()))
+            exit()
             for setting in json.loads(ret.decode()):
                 if setting["name"] == "AzureWebJobsStorage":
                     connection_string = setting["value"]
