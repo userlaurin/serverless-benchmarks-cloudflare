@@ -393,7 +393,6 @@ class Azure(System):
         ]
         activity_bindings = [
             {"name": "event", "type": "activityTrigger", "direction": "in"},
-            # {"name": "$return", "type": "http", "direction": "out"},
         ]
         blob_binding = {"name": "measurements", "type": "blob",
                         "dataType": "binary", "direction": "out",
@@ -433,8 +432,7 @@ class Azure(System):
                 "path": f"sebs-experiments/{name}",
                 **blob_binding
             }
-            # default_bindings = activity_bindings + [func_blob_binding]
-            default_bindings = activity_bindings
+            default_bindings = activity_bindings + [func_blob_binding]
 
             payload = {
                 "bindings": bindings.get(name, default_bindings),
