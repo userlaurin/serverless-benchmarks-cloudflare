@@ -786,6 +786,7 @@ class GCPConfig(Config):
         """
         config = cast(GCPConfig, cfg)
         config._region = dct["region"]
+        config._redis_host = dct["redis_host"]
 
     def serialize(self) -> Dict:
         """Serialize configuration to dictionary for cache storage.
@@ -799,6 +800,7 @@ class GCPConfig(Config):
             "region": self._region,
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
+            "redis_host": self._redis_host
         }
         return out
 

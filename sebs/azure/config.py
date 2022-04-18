@@ -869,5 +869,6 @@ class AzureConfig(Config):
             "region": self._region,
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
+            "redis_host": self._redis_host
         }
         return out
