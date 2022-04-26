@@ -574,14 +574,9 @@ class System(ABC, LoggingBase):
     def update_workflow(self, workflow: Workflow, code_package: CodePackage):
         pass
 
-    def get_workflow(
-        self, code_package: CodePackage, workflow_name: Optional[str] = None
-    ):
-        if (
-            code_package.language_version
-            not in self.system_config.supported_language_versions(
-                self.name(), code_package.language_name
-            )
+    def get_workflow(self, code_package: CodePackage, workflow_name: Optional[str] = None):
+        if code_package.language_version not in self.system_config.supported_language_versions(
+            self.name(), code_package.language_name
         ):
             raise Exception(
                 "Unsupported {language} version {version} in {system}!".format(

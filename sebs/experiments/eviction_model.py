@@ -188,9 +188,7 @@ class EvictionModel(Experiment):
         """
 
         try:
-            print(
-                f"Process {pid} Thread {tid} Invoke function {func.name} with {payload} now!"
-            )
+            print(f"Process {pid} Thread {tid} Invoke function {func.name} with {payload} now!")
             begin = datetime.now()
             res = func.triggers(Trigger.TriggerType.HTTP)[0].sync_invoke(payload)
             end = datetime.now()
@@ -203,9 +201,7 @@ class EvictionModel(Experiment):
             logging.error(f"First Invocation Failed at function {func.name}, {e}")
             raise RuntimeError()
 
-        time_spent = float(datetime.now().strftime("%s.%f")) - float(
-            end.strftime("%s.%f")
-        )
+        time_spent = float(datetime.now().strftime("%s.%f")) - float(end.strftime("%s.%f"))
         seconds_sleep = sleep_time - time_spent
         print(f"PID {pid} TID {tid} with time {sleep_time}, sleep {seconds_sleep}")
         time.sleep(seconds_sleep)
@@ -395,9 +391,7 @@ class EvictionModel(Experiment):
                 """
                 for j in range(0, threads):
                     servers_results.append(
-                        pool.apply_async(
-                            EvictionModel.accept_replies, args=(port + j, invocations)
-                        )
+                        pool.apply_async(EvictionModel.accept_replies, args=(port + j, invocations))
                     )
 
                 """

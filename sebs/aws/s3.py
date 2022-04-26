@@ -136,9 +136,7 @@ class S3(PersistentStorage):
         for bucket_name in buckets:
             if name in bucket_name:
                 self.logging.info(
-                    "Bucket {} for {} already exists, skipping.".format(
-                        bucket_name, name
-                    )
+                    "Bucket {} for {} already exists, skipping.".format(bucket_name, name)
                 )
                 return bucket_name
 
@@ -172,9 +170,7 @@ class S3(PersistentStorage):
 
             self.logging.info("Created bucket {}".format(bucket_name))
         except self.client.exceptions.BucketAlreadyExists as e:
-            self.logging.error(
-                f"The bucket {bucket_name} exists already in region {self.region}!"
-            )
+            self.logging.error(f"The bucket {bucket_name} exists already in region {self.region}!")
             raise e
         except self.client.exceptions.ClientError as e:
             self.logging.error(

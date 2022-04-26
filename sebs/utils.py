@@ -279,9 +279,7 @@ def global_logging() -> None:
     """
     logging_format = "%(asctime)s,%(msecs)d %(levelname)s %(name)s: %(message)s"
     logging_date_format = "%H:%M:%S"
-    logging.basicConfig(
-        format=logging_format, datefmt=logging_date_format, level=logging.INFO
-    )
+    logging.basicConfig(format=logging_format, datefmt=logging_date_format, level=logging.INFO)
 
 
 class SensitiveDataFilter(logging.Filter):

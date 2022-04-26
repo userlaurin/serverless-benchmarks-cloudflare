@@ -2973,9 +2973,7 @@ class GCP(System):
                 if not is_deployed:
                     undeployed_functions.append(func)
             deployed = len(undeployed_functions_before) - len(undeployed_functions)
-            self.logging.info(
-                f"Deployed {deployed} out of {len(undeployed_functions_before)}"
-            )
+            self.logging.info(f"Deployed {deployed} out of {len(undeployed_functions_before)}")
             if deployed == len(undeployed_functions_before):
                 deployment_done = True
                 break

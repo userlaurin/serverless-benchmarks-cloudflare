@@ -989,9 +989,7 @@ class Cache(LoggingBase):
             cache_config = os.path.join(benchmark_dir, "config.json")
 
             if os.path.exists(cache_config):
-                benchmarks_config: Dict[str, Any] = {
-                    benchmark.name: {**benchmark.serialize()}
-                }
+                benchmarks_config: Dict[str, Any] = {benchmark.name: {**benchmark.serialize()}}
 
                 with open(cache_config, "r") as fp:
                     cached_config = json.load(fp)

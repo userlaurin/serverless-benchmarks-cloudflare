@@ -234,63 +234,6 @@ class TestSequenceMeta(type):
                 )
 
                 # Get experiment configuration and deploy the benchmark
-                experiment_config = self.client.get_experiment_config(self.experiment_config)
-                benchmark = self.client.get_benchmark(
-                    benchmark_name, deployment_client, experiment_config
-                )
-
-                # Prepare input data for the benchmark
-                input_config = benchmark.prepare_input(
-                    deployment_client.system_resources,
-                    size="test",
-                    replace_existing=experiment_config.update_storage,
-                )
-
-                # Get or create the function
-                func = deployment_client.get_function(
-                    benchmark, deployment_client.default_benchmark_name(benchmark)
-                )
-
-                # Test each trigger type
-                failure = False
-                execution_results: dict = {}
-                for trigger_type in triggers:
-                    if len(func.triggers(trigger_type)) > 0:
-                        trigger = func.triggers(trigger_type)[0]
-                    else:
-                        trigger = deployment_client.create_trigger(func, trigger_type)
-                        # Sleep to allow trigger creation to propagate
-                        # Some cloud systems (e.g., AWS API Gateway) need time
-                        # before the trigger is ready to use
-                        sleep(5)
-
-                    # Synchronous invoke to test function
-                    try:
-                        ret = trigger.sync_invoke(input_config)
-                        if ret.stats.failure:
-                            failure = True
-                            logging_wrapper.error(
-                                f"{benchmark_name} fail on trigger: {trigger_type}"
-                            )
-                        else:
-                            output = ret.output.get("result", {})
-                            storage = (
-                                deployment_client.system_resources.get_storage()
-                                if benchmark.uses_storage
-                                else None
-                            )
-                            error = benchmark.validate_output(input_config, output, storage)
-                            if error is not None:
-                                failure = True
-                                logging_wrapper.error(
-                                    f"{benchmark_name} output validation failed"
-                                    f" on trigger: {trigger_type}, reason: {error}"
-                                )
-                            else:
-                                logging_wrapper.info(
-                                    f"{benchmark_name} success on trigger: {trigger_type}"
-                                )
-                        execution_results[trigger_type.name] = ret.output
                     except RuntimeError:
                         failure = True
                         logging_wrapper.error(f"{benchmark_name} fail on trigger: {trigger_type}")
@@ -1244,11 +1187,7 @@ class TracingStreamResult(testtools.StreamResult):
             # Handle test failure
             print("\n-------------\n")
             print("{0[test_id]}: {0[test_status]}".format(kwargs))
-            print(
-                "{0[test_id]}: {1}".format(
-                    kwargs, self.output[kwargs["test_id"]].decode()
-                )
-            )
+            print("{0[test_id]}: {1}".format(kwargs, self.output[kwargs["test_id"]].decode()))
             print("\n-------------\n")
             self.failures.add(test_name)
         elif kwargs["test_status"] == "success":
@@ -1489,9 +1428,7 @@ def regression_suite(
     for suc in result.success:
         print(f"- {suc}")
     if len(result.failures):
-        print(
-            f"Failures when executing {len(result.failures)} out of {len(tests)} functions"
-        )
+        print(f"Failures when executing {len(result.failures)} out of {len(tests)} functions")
         for failure in result.failures:
             print(f"- {failure}")
 

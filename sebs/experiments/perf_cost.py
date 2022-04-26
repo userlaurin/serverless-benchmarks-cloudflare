@@ -282,10 +282,7 @@ class PerfCost(Experiment):
                 first_iteration = True
                 while samples_gathered < repetitions:
 
-                    if (
-                        run_type == PerfCost.RunType.COLD
-                        or run_type == PerfCost.RunType.BURST
-                    ):
+                    if run_type == PerfCost.RunType.COLD or run_type == PerfCost.RunType.BURST:
                         self._deployment_client.enforce_cold_start(
                             [self._function], self._benchmark
                         )
@@ -406,9 +403,7 @@ class PerfCost(Experiment):
                     PerfCost.RunType.SEQUENTIAL, settings, 1, repetitions, suffix
                 )
             else:
-                raise RuntimeError(
-                    f"Unknown experiment type {experiment_type} for Perf-Cost!"
-                )
+                raise RuntimeError(f"Unknown experiment type {experiment_type} for Perf-Cost!")
 
     def process(
         self,
@@ -469,9 +464,7 @@ class PerfCost(Experiment):
                 else:
 
                     if os.path.exists(
-                        os.path.join(
-                            directory, "perf-cost", f"{name}-processed{extension}"
-                        )
+                        os.path.join(directory, "perf-cost", f"{name}-processed{extension}")
                     ):
                         self.logging.info(f"Skipping already processed {f}")
                         continue
@@ -519,9 +512,7 @@ class PerfCost(Experiment):
 
                         name, extension = os.path.splitext(f)
                         with open(
-                            os.path.join(
-                                directory, "perf-cost", f"{name}-processed{extension}"
-                            ),
+                            os.path.join(directory, "perf-cost", f"{name}-processed{extension}"),
                             "w",
                         ) as out_f:
                             out_f.write(

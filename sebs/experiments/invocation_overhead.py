@@ -236,9 +236,7 @@ class InvocationOverhead(Experiment):
 
         experiment: Union[CodePackageSize, PayloadSize]
         if self.settings["type"] == "code":
-            experiment = CodePackageSize(
-                self._deployment_client, self._benchmark, self.settings
-            )
+            experiment = CodePackageSize(self._deployment_client, self._benchmark, self.settings)
         else:
             experiment = PayloadSize(self.settings)
 
@@ -293,9 +291,7 @@ class InvocationOverhead(Experiment):
                             successful = True
 
         time.sleep(5)
-        self._storage.download_bucket(
-            self.benchmark_input["output-bucket"], self._out_dir
-        )
+        self._storage.download_bucket(self.benchmark_input["output-bucket"], self._out_dir)
 
     def process(
         self,
@@ -325,9 +321,7 @@ class InvocationOverhead(Experiment):
 
         full_data: Dict[str, pd.Dataframe] = {}
         for f in glob.glob(
-            os.path.join(
-                directory, "invocation-overhead", self.settings["type"], "*.csv"
-            )
+            os.path.join(directory, "invocation-overhead", self.settings["type"], "*.csv")
         ):
 
             if "result.csv" in f or "result-processed.csv" in f:
@@ -340,18 +334,13 @@ class InvocationOverhead(Experiment):
             else:
                 full_data[request_id] = data
         df = pd.concat(full_data.values()).reset_index(drop=True)
-        df["rtt"] = (df["server_rcv"] - df["client_send"]) + (
-            df["client_rcv"] - df["server_send"]
-        )
+        df["rtt"] = (df["server_rcv"] - df["client_send"]) + (df["client_rcv"] - df["server_send"])
         df["clock_drift"] = (
-            (df["client_send"] - df["server_rcv"])
-            + (df["client_rcv"] - df["server_send"])
+            (df["client_send"] - df["server_rcv"]) + (df["client_rcv"] - df["server_send"])
         ) / 2
 
         with open(
-            os.path.join(
-                directory, "invocation-overhead", self.settings["type"], "result.csv"
-            )
+            os.path.join(directory, "invocation-overhead", self.settings["type"], "result.csv")
         ) as csvfile:
             with open(
                 os.path.join(
@@ -384,12 +373,8 @@ class InvocationOverhead(Experiment):
                     request_id = row[-1]
                     clock_drift = df[df["id"] == request_id]["clock_drift"].mean()
                     clock_drift_std = df[df["id"] == request_id]["clock_drift"].std()
-                    invocation_time = (
-                        float(row[5]) - float(row[4]) - float(row[3]) + clock_drift
-                    )
-                    writer.writerow(
-                        row + [clock_drift, clock_drift_std, invocation_time]
-                    )
+                    invocation_time = float(row[5]) - float(row[4]) - float(row[3]) + clock_drift
+                    writer.writerow(row + [clock_drift, clock_drift_std, invocation_time])
 
     def receive_datagrams(
         self, input_benchmark: dict, repetitions: int, port: int, ip: str
@@ -421,9 +406,7 @@ class InvocationOverhead(Experiment):
         import socket
 
         input_benchmark["server-port"] = port
-        self.logging.info(
-            f"Starting invocation with {repetitions} repetitions on port {port}"
-        )
+        self.logging.info(f"Starting invocation with {repetitions} repetitions on port {port}")
         socket.setdefaulttimeout(4)
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server_socket.bind(("", port))

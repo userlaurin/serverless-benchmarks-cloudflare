@@ -145,63 +145,6 @@ class AWSCredentials(Credentials):
     def deserialize(config: dict, cache: Cache, handlers: LoggingHandlers) -> Credentials:
         """Deserialize AWS credentials from configuration and cache.
 
-        Loads AWS credentials from configuration file, environment variables, or cache.
-        Validates that credentials match cached account ID if available.
-
-        Args:
-            config: Configuration dictionary that may contain credentials
-            cache: Cache instance for retrieving/storing credentials
-            handlers: Logging handlers for error reporting
-
-        Returns:
-            Credentials: Deserialized AWSCredentials instance
-
-        Raises:
-            RuntimeError: If credentials are missing or don't match cached account
-        """
-        cached_config = cache.get_config("aws")
-        ret: AWSCredentials
-        account_id: Optional[str] = None
-
-        # Load cached values
-        if cached_config and "credentials" in cached_config:
-            account_id = cached_config["credentials"]["account_id"]
-
-        # Check for new config.
-        # Loading old results might result in not having credentials in the JSON - need to check.
-        if "credentials" in config and "access_key" in config["credentials"]:
-            ret = AWSCredentials.initialize(config["credentials"])
-        elif "AWS_ACCESS_KEY_ID" in os.environ:
-            ret = AWSCredentials(
-                os.environ["AWS_ACCESS_KEY_ID"], os.environ["AWS_SECRET_ACCESS_KEY"]
-            )
-        else:
-            raise RuntimeError(
-                "AWS login credentials are missing! Please set "
-                "up environmental variables AWS_ACCESS_KEY_ID and "
-                "AWS_SECRET_ACCESS_KEY"
-            )
-
-        if account_id is not None and account_id != ret.account_id:
-            ret.logging.error(
-                f"The account id {ret.account_id} from provided credentials is different "
-                f"from the account id {account_id} found in the cache! Please change "
-                "your cache directory or create a new one!"
-            )
-            raise RuntimeError(
-                f"AWS login credentials do not match the account {account_id} in cache!"
-            )
-        ret.logging_handlers = handlers
-        return ret
-
-    def update_cache(self, cache: Cache) -> None:
-        """Update the cache with current credentials.
-
-        Args:
-            cache: Cache instance to update
-        """
-        cache.update_config(val=self.account_id, keys=["aws", "credentials", "account_id"])
-
     def serialize(self) -> dict:
         """Serialize credentials to a dictionary.
 
@@ -493,9 +436,7 @@ class AWSResources(Resources):
                     {
                         "Sid": "",
                         "Effect": "Allow",
-                        "Principal": {
-                            "Service": ["lambda.amazonaws.com", "states.amazonaws.com"]
-                        },
+                        "Principal": {"Service": ["lambda.amazonaws.com", "states.amazonaws.com"]},
                         "Action": "sts:AssumeRole",
                     }
                 ],
@@ -1091,9 +1032,7 @@ class AWSResources(Resources):
         # remove old entries before writing new data.
         cache.remove_config_key(["aws", "resources", "http-apis"])
         for name, api in self._http_apis.items():
-            cache.update_config(
-                val=api.serialize(), keys=["aws", "resources", "http-apis", name]
-            )
+            cache.update_config(val=api.serialize(), keys=["aws", "resources", "http-apis", name])
 
         cache.remove_config_key(["aws", "resources", "function-urls"])
         for name, func_url in self._function_urls.items():
@@ -1134,9 +1073,7 @@ class AWSResources(Resources):
             if "resources" in config:
                 AWSResources.initialize(ret, config["resources"])
                 ret.logging_handlers = handlers
-                ret.logging.info(
-                    "No cached resources for AWS found, using user configuration."
-                )
+                ret.logging.info("No cached resources for AWS found, using user configuration.")
             else:
                 AWSResources.initialize(ret, {})
                 ret.logging_handlers = handlers

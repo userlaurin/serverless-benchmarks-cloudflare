@@ -108,9 +108,7 @@ class BlobStorage(PersistentStorage):
 
         for c in containers:
             if name in c:
-                self.logging.info(
-                    "Container {} for {} already exists, skipping.".format(c, name)
-                )
+                self.logging.info("Container {} for {} already exists, skipping.".format(c, name))
                 return c
         if randomize_name:
             random_name = str(uuid.uuid4())[0:16]
