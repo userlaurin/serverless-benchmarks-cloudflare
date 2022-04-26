@@ -299,7 +299,9 @@ class AzureResources(Resources):
                 Connection string for the storage account.
             """
             ret = cli_instance.execute(
-                "az storage account show-connection-string --name {}".format(account_name)
+                "az storage account show-connection-string --name {}".format(
+                    account_name
+                )
             )
             ret_dct = json.loads(ret.decode("utf-8"))
             connection_string = ret_dct["connectionString"]
@@ -748,7 +750,11 @@ class AzureResources(Resources):
         cached_config = cache.get_config("azure")
         ret = AzureResources()
         # Load cached values
-        if cached_config and "resources" in cached_config and len(cached_config["resources"]) > 0:
+        if (
+            cached_config
+            and "resources" in cached_config
+            and len(cached_config["resources"]) > 0
+        ):
             logging.info("Using cached resources for Azure")
             AzureResources.initialize(ret, cached_config["resources"])
         else:
@@ -756,7 +762,9 @@ class AzureResources(Resources):
             if "resources" in config:
                 AzureResources.initialize(ret, config["resources"])
                 ret.logging_handlers = handlers
-                ret.logging.info("No cached resources for Azure found, using user configuration.")
+                ret.logging.info(
+                    "No cached resources for Azure found, using user configuration."
+                )
             else:
                 ret = AzureResources()
                 ret.logging_handlers = handlers
@@ -869,6 +877,6 @@ class AzureConfig(Config):
             "region": self._region,
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
-            "redis_host": self._redis_host
+            "redis_host": self._redis_host,
         }
         return out

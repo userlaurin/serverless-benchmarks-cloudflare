@@ -742,8 +742,12 @@ class GCPConfig(Config):
             Initialized GCPConfig instance
         """
         cached_config = cache.get_config("gcp")
-        credentials = cast(GCPCredentials, GCPCredentials.deserialize(config, cache, handlers))
-        resources = cast(GCPResources, GCPResources.deserialize(config, cache, handlers))
+        credentials = cast(
+            GCPCredentials, GCPCredentials.deserialize(config, cache, handlers)
+        )
+        resources = cast(
+            GCPResources, GCPResources.deserialize(config, cache, handlers)
+        )
         config_obj = GCPConfig(credentials, resources)
         config_obj.logging_handlers = handlers
 
@@ -766,7 +770,10 @@ class GCPConfig(Config):
 
             old_value = getattr(config_obj, config_key)
             # ignore empty values
-            if getattr(config_obj, config_key) != config[config_key] and config[config_key]:
+            if (
+                getattr(config_obj, config_key) != config[config_key]
+                and config[config_key]
+            ):
                 config_obj.logging.info(
                     f"Updating cached key {config_key} with {old_value} "
                     f"to user-provided value {config[config_key]}."
@@ -800,7 +807,7 @@ class GCPConfig(Config):
             "region": self._region,
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
-            "redis_host": self._redis_host
+            "redis_host": self._redis_host,
         }
         return out
 

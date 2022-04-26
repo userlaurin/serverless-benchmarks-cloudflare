@@ -1278,7 +1278,9 @@ class Benchmark(LoggingBase):
                 try:
                     self.logging.info(
                         "Docker build of benchmark dependencies in container "
-                        "of image {repo}:{image}".format(repo=repo_name, image=image_name)
+                        "of image {repo}:{image}".format(
+                            repo=repo_name, image=image_name
+                        )
                     )
                     self.logging.info(
                         "Docker mount of benchmark code from path {path}".format(
@@ -1722,7 +1724,9 @@ class Benchmark(LoggingBase):
             assert self.code_location is not None
             self._update_zip(self.code_location, filename, data)
             new_size = self.recompute_size() / 1024.0 / 1024.0
-            self.logging.info(f"Modified zip package {self.code_location}, new size {new_size} MB")
+            self.logging.info(
+                f"Modified zip package {self.code_location}, new size {new_size} MB"
+            )
         else:
             raise NotImplementedError()
 
@@ -1926,7 +1930,9 @@ def load_benchmark_input(benchmark_path: str) -> BenchmarkModuleInterface:
     import importlib.machinery
     import importlib.util
 
-    loader = importlib.machinery.SourceFileLoader("input", os.path.join(path, "input.py"))
+    loader = importlib.machinery.SourceFileLoader(
+        "input", os.path.join(path, "input.py")
+    )
     spec = importlib.util.spec_from_loader(loader.name, loader)
     assert spec
     mod = importlib.util.module_from_spec(spec)

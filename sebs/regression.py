@@ -1244,7 +1244,11 @@ class TracingStreamResult(testtools.StreamResult):
             # Handle test failure
             print("\n-------------\n")
             print("{0[test_id]}: {0[test_status]}".format(kwargs))
-            print("{0[test_id]}: {1}".format(kwargs, self.output[kwargs["test_id"]].decode()))
+            print(
+                "{0[test_id]}: {1}".format(
+                    kwargs, self.output[kwargs["test_id"]].decode()
+                )
+            )
             print("\n-------------\n")
             self.failures.add(test_name)
         elif kwargs["test_status"] == "success":
@@ -1485,7 +1489,9 @@ def regression_suite(
     for suc in result.success:
         print(f"- {suc}")
     if len(result.failures):
-        print(f"Failures when executing {len(result.failures)} out of {len(tests)} functions")
+        print(
+            f"Failures when executing {len(result.failures)} out of {len(tests)} functions"
+        )
         for failure in result.failures:
             print(f"- {failure}")
 

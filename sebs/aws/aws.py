@@ -360,8 +360,7 @@ class AWS(System):
         try:
             ret = self.client.get_function(FunctionName=func_name)
             self.logging.info(
-                "Function {} exists on AWS, retrieve configuration.".format(
-                    func_name)
+                "Function {} exists on AWS, retrieve configuration.".format(func_name)
             )
             # Here we assume a single Lambda role
             lambda_function = LambdaFunction(
@@ -695,8 +694,7 @@ class AWS(System):
                 return request_id
             output = requests[request_id]
         output.request_id = request_id
-        output.provider_times.execution = int(
-            float(aws_vals["Duration"]) * 1000)
+        output.provider_times.execution = int(float(aws_vals["Duration"]) * 1000)
         output.stats.memory_used = float(aws_vals["Max Memory Used"])
         if "Init Duration" in aws_vals:
             output.provider_times.initialization = int(float(aws_vals["Init Duration"]) * 1000)
@@ -808,14 +806,12 @@ class AWS(System):
                 time.sleep(5)
                 response = self.logs_client.get_query_results(queryId=query_id)
             if len(response["results"]) == 0:
-                self.logging.info(
-                    "AWS logs are not yet available, repeat after 15s...")
+                self.logging.info("AWS logs are not yet available, repeat after 15s...")
                 time.sleep(15)
                 response = None
             else:
                 break
-        self.logging.error(
-            f"Invocation error for AWS Lambda function {function_name}")
+        self.logging.error(f"Invocation error for AWS Lambda function {function_name}")
         for message in response["results"]:
             for value in message:
                 if value["field"] == "@message":
@@ -882,94 +878,6 @@ class AWS(System):
                             f"Request: {result_part['value']}"
                         )
 
-                    if request_id in requests:
-                        results_processed += 1
-                        requests_ids.remove(request_id)
-        self.logging.info(
-            f"Received {len(results)} entries, found results for {results_processed} "
-            f"out of {results_count} invocations"
-        )
-
-    def create_trigger(self, function: Function, trigger_type: Trigger.TriggerType) -> Trigger:
-        """Create a trigger for the specified function.
-
-        Creates and configures a trigger based on the specified type. Currently
-        supports HTTP triggers (via API Gateway) and library triggers.
-
-        Args:
-            func: Function to create trigger for
-            trigger_type: Type of trigger to create (HTTP or LIBRARY)
-
-        Returns:
-            Trigger: The created trigger instance
-
-        Raises:
-            RuntimeError: If trigger type is not supported
-        """
-        from sebs.aws.triggers import HTTPTrigger, HTTPTriggerImplementation
-
-        function = cast(LambdaFunction, function)
-
-        trigger: Trigger
-        if trigger_type == Trigger.TriggerType.HTTP:
-            if self.config.resources.use_function_url:
-                # Use Lambda Function URL (no 29-second timeout limit)
-                func_url = self.config.resources.function_url(function, self.session)
-                trigger = HTTPTrigger(
-                    url=func_url.url,
-                    implementation=HTTPTriggerImplementation.FUNCTION_URL,
-                    function_name=func_url.function_name,
-                    auth_type=func_url.auth_type,
-                )
-                self.logging.info(f"Created Function URL trigger for {function.name} function.")
-            else:
-                # Use API Gateway (default, for backward compatibility)
-                api_name = "{}-http-api".format(function.name)
-                http_api = self.config.resources.http_api(api_name, function, self.session)
-                # https://aws.amazon.com/blogs/compute/announcing-http-apis-for-amazon-api-gateway/
-                # but this is wrong - source arn must be {api-arn}/*/*
-                self.get_lambda_client().add_permission(
-                    FunctionName=function.name,
-                    StatementId=str(uuid.uuid1()),
-                    Action="lambda:InvokeFunction",
-                    Principal="apigateway.amazonaws.com",
-                    SourceArn=f"{http_api.arn}/*/*",
-                )
-                trigger = HTTPTrigger(
-                    url=http_api.endpoint,
-                    implementation=HTTPTriggerImplementation.API_GATEWAY,
-                    api_id=api_name,
-                )
-                self.logging.info(
-                    f"Created HTTP API Gateway trigger for {function.name} function. "
-                    "Sleep 5 seconds to avoid cloud errors."
-                )
-                time.sleep(5)
-
-            trigger.logging_handlers = self.logging_handlers
-        elif trigger_type == Trigger.TriggerType.LIBRARY:
-            # should already exist
-            return function.triggers(Trigger.TriggerType.LIBRARY)[0]
-        else:
-            raise RuntimeError("Not supported!")
-
-        function.add_trigger(trigger)
-        self.cache_client.update_function(function)
-        return trigger
-
-    def _enforce_cold_start(self, function: Function, code_package: Benchmark) -> None:
-        """Enforce cold start for a single function.
-
-        Updates the function's environment variables to force a cold start
-        on the next invocation.
-
-        Args:
-            function: Function to enforce cold start for
-            code_package: Benchmark code package with configuration
-        """
-        func = cast(LambdaFunction, function)
-        self.update_function_configuration(
-            func, code_package, {"ForceColdStart": str(self.cold_start_counter)}
         )
 
     def enforce_cold_start(self, functions: List[Function], code_package: Benchmark) -> None:

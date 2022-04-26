@@ -494,10 +494,7 @@ class AWSResources(Resources):
                         "Sid": "",
                         "Effect": "Allow",
                         "Principal": {
-                            "Service": [
-                                "lambda.amazonaws.com",
-                                "states.amazonaws.com"
-                            ]
+                            "Service": ["lambda.amazonaws.com", "states.amazonaws.com"]
                         },
                         "Action": "sts:AssumeRole",
                     }
@@ -509,13 +506,12 @@ class AWSResources(Resources):
                 "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
                 "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
                 "arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
-                "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+                "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
             ]
             try:
                 out = iam_client.get_role(RoleName=role_name)
                 self._lambda_role = out["Role"]["Arn"]
-                self.logging.info(
-                    f"AWS: Selected {self._lambda_role} IAM role")
+                self.logging.info(f"AWS: Selected {self._lambda_role} IAM role")
             except iam_client.exceptions.NoSuchEntityException:
                 out = iam_client.create_role(
                     RoleName=role_name,
@@ -529,8 +525,7 @@ class AWSResources(Resources):
                 time.sleep(10)
             # Attach basic AWS Lambda and S3 policies.
             for policy in attached_policies:
-                iam_client.attach_role_policy(
-                    RoleName=role_name, PolicyArn=policy)
+                iam_client.attach_role_policy(RoleName=role_name, PolicyArn=policy)
         return self._lambda_role
 
     def http_api(
@@ -1096,8 +1091,9 @@ class AWSResources(Resources):
         # remove old entries before writing new data.
         cache.remove_config_key(["aws", "resources", "http-apis"])
         for name, api in self._http_apis.items():
-            cache.update_config(val=api.serialize(), keys=[
-                                "aws", "resources", "http-apis", name])
+            cache.update_config(
+                val=api.serialize(), keys=["aws", "resources", "http-apis", name]
+            )
 
         cache.remove_config_key(["aws", "resources", "function-urls"])
         for name, func_url in self._function_urls.items():
@@ -1139,7 +1135,8 @@ class AWSResources(Resources):
                 AWSResources.initialize(ret, config["resources"])
                 ret.logging_handlers = handlers
                 ret.logging.info(
-                    "No cached resources for AWS found, using user configuration.")
+                    "No cached resources for AWS found, using user configuration."
+                )
             else:
                 AWSResources.initialize(ret, {})
                 ret.logging_handlers = handlers
@@ -1264,6 +1261,6 @@ class AWSConfig(Config):
             "region": self._region,
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
-            "redis_host": self._redis_host
+            "redis_host": self._redis_host,
         }
         return out

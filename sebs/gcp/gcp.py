@@ -892,8 +892,7 @@ class CloudFunctionGen1Strategy(DeploymentStrategy):
                 except StopIteration:
                     break
                 except exceptions.ResourceExhausted:
-                    self.logging.info(
-                        "Google Cloud resources exhausted, sleeping 30s")
+                    self.logging.info("Google Cloud resources exhausted, sleeping 30s")
                     sleep(30)
 
         timestamps = []
@@ -950,8 +949,7 @@ class CloudFunctionGen1Strategy(DeploymentStrategy):
         """
 
         # Set expected metrics here
-        available_metrics = ["execution_times",
-                             "user_memory_bytes", "network_egress"]
+        available_metrics = ["execution_times", "user_memory_bytes", "network_egress"]
 
         client = monitoring_v3.MetricServiceClient()
         project_name = client.common_project_path(self.config.project_name)
@@ -2935,8 +2933,7 @@ class GCP(System):
                 if not is_deployed:
                     undeployed_functions.append((versionId, func))
             deployed = len(new_versions) - len(undeployed_functions)
-            self.logging.info(
-                f"Redeployed {deployed} out of {len(new_versions)}")
+            self.logging.info(f"Redeployed {deployed} out of {len(new_versions)}")
             if deployed == len(new_versions):
                 deployment_done = True
                 break
@@ -2975,10 +2972,10 @@ class GCP(System):
                 is_deployed, last_version = self.is_deployed(func)
                 if not is_deployed:
                     undeployed_functions.append(func)
-            deployed = len(undeployed_functions_before) - \
-                len(undeployed_functions)
+            deployed = len(undeployed_functions_before) - len(undeployed_functions)
             self.logging.info(
-                f"Deployed {deployed} out of {len(undeployed_functions_before)}")
+                f"Deployed {deployed} out of {len(undeployed_functions_before)}"
+            )
             if deployed == len(undeployed_functions_before):
                 deployment_done = True
                 break
@@ -3024,8 +3021,7 @@ class GCP(System):
                 GCP.helper_zip(base_directory, directory, archive)
             else:
                 if directory != archive.filename:  # prevent form including itself
-                    archive.write(directory, os.path.relpath(
-                        directory, base_directory))
+                    archive.write(directory, os.path.relpath(directory, base_directory))
 
     @staticmethod
     def recursive_zip(directory: str, archname: str) -> bool:

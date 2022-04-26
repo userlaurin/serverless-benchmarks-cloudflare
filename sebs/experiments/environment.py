@@ -50,7 +50,9 @@ class ExperimentEnvironment:
                 is not intel_pstate
         """
         # find CPU mapping
-        ret = execute('cat /proc/cpuinfo | grep -e "processor" -e "core id"', shell=True)
+        ret = execute(
+            'cat /proc/cpuinfo | grep -e "processor" -e "core id"', shell=True
+        )
         # skip empty line at the end
         mapping = [int(x.split(":")[1]) for x in ret.split("\n") if x]
 
@@ -84,7 +86,9 @@ class ExperimentEnvironment:
             raise NotImplementedError()
 
         # Assume all CPU use the same
-        scaling_governor_path = "/sys/devices/system/cpu/cpu{cpu_id}/cpufreq/scaling_driver"
+        scaling_governor_path = (
+            "/sys/devices/system/cpu/cpu{cpu_id}/cpufreq/scaling_driver"
+        )
         governor = execute("cat {path}".format(path=scaling_governor_path))
         if governor == "intel_pstate":
             self._governor: str = governor
@@ -105,7 +109,9 @@ class ExperimentEnvironment:
             for logical_core in logical_cores[1:]:
                 path = cpu_status_path.format(cpu_id=logical_core["core"])
                 execute(
-                    cmd="echo {status} | sudo tee {path}".format(status=status, path=path),
+                    cmd="echo {status} | sudo tee {path}".format(
+                        status=status, path=path
+                    ),
                     shell=True,
                 )
 
@@ -187,7 +193,9 @@ class ExperimentEnvironment:
         was called.
         """
         path = "/sys/devices/system/cpu/intel_pstate/min_perf_pct"
-        execute("echo {freq} | sudo tee {path}".format(freq=self._prev_min_freq, path=path))
+        execute(
+            "echo {freq} | sudo tee {path}".format(freq=self._prev_min_freq, path=path)
+        )
 
     def setup_benchmarking(self, cores: List[int]) -> None:
         """Set up the environment for stable benchmarking.

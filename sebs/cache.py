@@ -989,7 +989,9 @@ class Cache(LoggingBase):
             cache_config = os.path.join(benchmark_dir, "config.json")
 
             if os.path.exists(cache_config):
-                benchmarks_config: Dict[str, Any] = {benchmark.name: {**benchmark.serialize()}}
+                benchmarks_config: Dict[str, Any] = {
+                    benchmark.name: {**benchmark.serialize()}
+                }
 
                 with open(cache_config, "r") as fp:
                     cached_config = json.load(fp)
@@ -1009,7 +1011,9 @@ class Cache(LoggingBase):
                 self._write_serialized_atomic(cache_config, config)
             else:
                 raise RuntimeError(
-                    "Can't cache benchmark {} for a non-existing code package!".format(benchmark.name)
+                    "Can't cache benchmark {} for a non-existing code package!".format(
+                        benchmark.name
+                    )
                 )
 
     def update_function(self, function: "Function") -> None:
@@ -1045,5 +1049,7 @@ class Cache(LoggingBase):
                 self._write_serialized_atomic(cache_config, cached_config)
             else:
                 raise RuntimeError(
-                    "Can't cache benchmark {} for a non-existing code package!".format(benchmark.name)
+                    "Can't cache benchmark {} for a non-existing code package!".format(
+                        benchmark.name
+                    )
                 )
