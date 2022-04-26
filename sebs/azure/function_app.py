@@ -78,3 +78,9 @@ class AzureFunction(Function):
             assert trigger_type, "Unknown trigger type {}".format(trigger["type"])
             ret.add_trigger(trigger_type.deserialize(trigger))
         return ret
+
+class AzureFunction(FunctionApp):
+    pass
+
+class AzureWorkflow(FunctionApp):
+    pass

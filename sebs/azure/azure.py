@@ -36,15 +36,12 @@ import json
 import random
 import re
 import os
-import io
 import shutil
 import time
 import uuid
 from typing import cast, Dict, List, Optional, Set, Tuple, Type  # noqa
 
 import docker
-import pandas as pd
-from azure.storage.blob import BlobServiceClient
 
 from sebs.azure.blob_storage import BlobStorage
 from sebs.azure.cli import AzureCLI
@@ -913,7 +910,7 @@ class Azure(System):
 
         config = {
             "resource_group": resource_group,
-            "func_name": func_name,
+            "name": name,
             "region": region,
             "runtime": self.AZURE_RUNTIMES[language],
             "runtime_version": language_runtime,
@@ -926,7 +923,7 @@ class Azure(System):
                 (
                     " az functionapp config appsettings list "
                     " --resource-group {resource_group} "
-                    " --name {func_name} "
+                    " --name {name} "
                 ).format(**config)
             )
             for setting in json.loads(ret.decode()):
@@ -939,7 +936,7 @@ class Azure(System):
                         account_name, connection_string
                     )
             self.logging.info(
-                "Azure: Selected {} function app".format(func_name))
+                "Azure: Selected {} function app".format(name))
         except RuntimeError:
             function_storage_account = self.config.resources.add_storage_account(
                 self.cli_instance)
@@ -950,8 +947,9 @@ class Azure(System):
                     # create function app
                     ret = self.cli_instance.execute(
                         (
-                            " az functionapp create --resource-group {resource_group} "
-                            " --os-type Linux --consumption-plan-location {region} "
+                            " az functionapp create --functions-version 3 "
+                            " --resource-group {resource_group} --os-type Linux"
+                            " --consumption-plan-location {region} "
                             " --runtime {runtime} --runtime-version {runtime_version} "
                             " --name {func_name} --storage-account {storage_account}"
                             " --functions-version 4 "
@@ -964,7 +962,7 @@ class Azure(System):
                     # Azure does not allow some concurrent operations
                     if "another operation is in progress" in str(e):
                         self.logging.info(
-                            f"Repeat {func_name} creation, another operation in progress"
+                            f"Repeat {name} creation, another operation in progress"
                         )
                     # Rethrow -> another error
                     else:
@@ -980,7 +978,7 @@ class Azure(System):
         # update existing function app
         self.update_function(function, code_package, system_variant, container_uri)
 
-        return function
+        return benchmark
 
     def cached_function(self, function: Function) -> None:
         """Initialize cached function with current configuration.
@@ -997,82 +995,14 @@ class Azure(System):
             azure_trigger.logging_handlers = self.logging_handlers
             azure_trigger.data_storage_account = data_storage_account
 
-    def create_workflow(self, code_package: CodePackage, workflow_name: str) -> AzureFunction:
-        language = code_package.language_name
-        language_runtime = code_package.language_version
-        resource_group = self.config.resources.resource_group(
-            self.cli_instance)
-        region = self.config.region
+    def create_function(self, code_package: CodePackage, func_name: str) -> AzureFunction:
+        return self.create_benchmark(code_package, func_name, AzureFunction)
 
-        config = {
-            "resource_group": resource_group,
-            "workflow_name": workflow_name,
-            "region": region,
-            "runtime": self.AZURE_RUNTIMES[language],
-            "runtime_version": language_runtime,
-        }
+    def update_function(self, function: Function, code_package: CodePackage):
+        self.update_benchmark(function, code_package)
 
-        # check if function does not exist
-        # no API to verify existence
-        try:
-            ret = self.cli_instance.execute(
-                (
-                    " az functionapp config appsettings list "
-                    " --resource-group {resource_group} "
-                    " --name {workflow_name} "
-                ).format(**config)
-            )
-            for setting in json.loads(ret.decode()):
-                if setting["name"] == "AzureWebJobsStorage":
-                    connection_string = setting["value"]
-                    elems = [z for y in connection_string.split(
-                        ";") for z in y.split("=")]
-                    account_name = elems[elems.index("AccountName") + 1]
-                    function_storage_account = AzureResources.Storage.from_cache(
-                        account_name, connection_string
-                    )
-            self.logging.info(
-                "Azure: Selected {} function app".format(workflow_name))
-        except RuntimeError:
-            function_storage_account = self.config.resources.add_storage_account(
-                self.cli_instance)
-            config["storage_account"] = function_storage_account.account_name
-
-            # FIXME: only Linux type is supported
-            while True:
-                try:
-                    # create function app
-                    self.cli_instance.execute(
-                        (
-                            " az functionapp create --resource-group {resource_group} "
-                            " --os-type Linux --consumption-plan-location {region} "
-                            " --runtime {runtime} --runtime-version {runtime_version} "
-                            " --name {workflow_name} --storage-account {storage_account}"
-                        ).format(**config)
-                    )
-                    self.logging.info(
-                        "Azure: Created workflow app {}".format(workflow_name))
-                    break
-                except RuntimeError as e:
-                    # Azure does not allow some concurrent operations
-                    if "another operation is in progress" in str(e):
-                        self.logging.info(
-                            f"Repeat {workflow_name} creation, another operation in progress"
-                        )
-                    # Rethrow -> another error
-                    else:
-                        raise
-        workflow = AzureWorkflow(
-            name=workflow_name,
-            benchmark=code_package.name,
-            code_hash=code_package.hash,
-            function_storage=function_storage_account,
-        )
-
-        # update existing function app
-        self.update_function(workflow, code_package)
-
-        return workflow
+    def create_workflow(self, code_package: CodePackage, workflow_name: str) -> AzureWorkflow:
+        return self.create_benchmark(code_package, workflow_name, AzureWorkflow)
 
     def download_metrics(
         self,
