@@ -374,7 +374,7 @@ class Azure(System):
                 code_package.path, "definition.json")
             if not os.path.exists(src_path):
                 raise ValueError(
-                    f"No workflow definition found for {workflow_name}")
+                    f"No workflow definition found in {directory}")
 
             dst_path = os.path.join(directory, "definition.json")
             shutil.copy2(src_path, dst_path)
