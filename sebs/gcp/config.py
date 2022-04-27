@@ -677,6 +677,7 @@ class GCPConfig(Config):
         super().__init__(name="gcp")
         self._credentials = credentials
         self._resources = resources
+        self._redis_host = redis_host
 
         self._deployment_config = GCPConfiguration()
 
@@ -744,7 +745,7 @@ class GCPConfig(Config):
         cached_config = cache.get_config("gcp")
         credentials = cast(GCPCredentials, GCPCredentials.deserialize(config, cache, handlers))
         resources = cast(GCPResources, GCPResources.deserialize(config, cache, handlers))
-        config_obj = GCPConfig(credentials, resources)
+        config_obj = GCPConfig(credentials, resources, cached_config["redis_host"])
         config_obj.logging_handlers = handlers
 
         if cached_config:

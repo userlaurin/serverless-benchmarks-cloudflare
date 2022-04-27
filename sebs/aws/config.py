@@ -1103,6 +1103,7 @@ class AWSConfig(Config):
         super().__init__(name="aws")
         self._credentials = credentials
         self._resources = resources
+        self._redis_host = redis_host
 
     @staticmethod
     def typename() -> str:
@@ -1161,7 +1162,7 @@ class AWSConfig(Config):
         cached_config = cache.get_config("aws")
         credentials = cast(AWSCredentials, AWSCredentials.deserialize(config, cache, handlers))
         resources = cast(AWSResources, AWSResources.deserialize(config, cache, handlers))
-        config_obj = AWSConfig(credentials, resources)
+        config_obj = AWSConfig(credentials, resources, cached_config["redis_host"])
         config_obj.logging_handlers = handlers
         # Load cached values
         if cached_config:

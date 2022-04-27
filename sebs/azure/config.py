@@ -436,6 +436,7 @@ class AzureConfig(Config):
         super().__init__(name="azure")
         self._credentials = credentials
         self._resources = resources
+        self._redis_host = redis_host
 
     @property
     def credentials(self) -> AzureCredentials:
@@ -484,7 +485,7 @@ class AzureConfig(Config):
         cached_config = cache.get_config("azure")
         credentials = cast(AzureCredentials, AzureCredentials.deserialize(config, cache, handlers))
         resources = cast(AzureResources, AzureResources.deserialize(config, cache, handlers))
-        config_obj = AzureConfig(credentials, resources)
+        config_obj = AzureConfig(credentials, resources, cached_config["redis_host"])
         config_obj.logging_handlers = handlers
         # Load cached values
         if cached_config:

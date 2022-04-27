@@ -80,9 +80,13 @@ class AzureFunction(Function):
         return ret
 
 
-class AzureFunction(FunctionApp):
-    pass
+class AzureFunction(Function, FunctionApp):
+    @staticmethod
+    def deserialize(cached_config: dict) -> AzureFunction:
+        return cast(AzureFunction, FunctionApp.deserialize(cached_config))
 
 
-class AzureWorkflow(FunctionApp):
-    pass
+class AzureWorkflow(Workflow, FunctionApp):
+    @staticmethod
+    def deserialize(cached_config: dict) -> AzureWorkflow:
+        return cast(AzureWorkflow, FunctionApp.deserialize(cached_config))
