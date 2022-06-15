@@ -53,7 +53,7 @@ class SFNGenerator(Generator):
         }
         cond = type + comp[case.op]
 
-        return {"Variable": "$." + case.var, cond: case.val, "Next": case.next}
+        return {"Variable": "$.payload" + case.var, cond: case.val, "Next": case.next}
 
     def encode_map(self, state: Map) -> Union[dict, List[dict]]:
         map_func_name = "func_" + str(uuid.uuid4())[:8]
@@ -61,7 +61,11 @@ class SFNGenerator(Generator):
         payload: Dict[str, Any] = {
             "Name": state.name,
             "Type": "Map",
-            "ItemsPath": "$." + state.array,
+            "ItemsPath": "$.payload." + state.array,
+            "Parameters": {
+                "request_id.$": "$.request_id",
+                "payload.$": "$$.Map.Item.Value",
+            },
             "Iterator": {
                 "StartAt": map_func_name,
                 "States": {
@@ -72,7 +76,7 @@ class SFNGenerator(Generator):
                     }
                 },
             },
-            "ResultPath": "$." + state.array
+            "ResultPath": "$.payload." + state.array
         }
 
         if state.next:

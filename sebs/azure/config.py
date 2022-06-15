@@ -437,6 +437,7 @@ class AzureConfig(Config):
         self._credentials = credentials
         self._resources = resources
         self._redis_host = redis_host
+        self._redis_password = redis_password
 
     @property
     def credentials(self) -> AzureCredentials:
@@ -485,7 +486,7 @@ class AzureConfig(Config):
         cached_config = cache.get_config("azure")
         credentials = cast(AzureCredentials, AzureCredentials.deserialize(config, cache, handlers))
         resources = cast(AzureResources, AzureResources.deserialize(config, cache, handlers))
-        config_obj = AzureConfig(credentials, resources, cached_config["redis_host"])
+        config_obj = AzureConfig(credentials, resources, cached_config["redis_host"], cached_config["redis_password"])
         config_obj.logging_handlers = handlers
         # Load cached values
         if cached_config:
@@ -522,5 +523,6 @@ class AzureConfig(Config):
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
             "redis_host": self._redis_host,
+            "redis_password": self._redis_password,
         }
         return out

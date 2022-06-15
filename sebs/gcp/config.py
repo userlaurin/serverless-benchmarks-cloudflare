@@ -678,6 +678,7 @@ class GCPConfig(Config):
         self._credentials = credentials
         self._resources = resources
         self._redis_host = redis_host
+        self._redis_password = redis_password
 
         self._deployment_config = GCPConfiguration()
 
@@ -726,6 +727,10 @@ class GCPConfig(Config):
         """
         return self._deployment_config
 
+    @property
+    def redis_password(self) -> str:
+        return self._redis_password
+
     @staticmethod
     def deserialize(config: Dict, cache: Cache, handlers: LoggingHandlers) -> "Config":
         """Deserialize GCP configuration from dictionary and cache.
@@ -745,7 +750,7 @@ class GCPConfig(Config):
         cached_config = cache.get_config("gcp")
         credentials = cast(GCPCredentials, GCPCredentials.deserialize(config, cache, handlers))
         resources = cast(GCPResources, GCPResources.deserialize(config, cache, handlers))
-        config_obj = GCPConfig(credentials, resources, cached_config["redis_host"])
+        config_obj = GCPConfig(credentials, resources, cached_config["redis_host"], cached_config["redis_password"])
         config_obj.logging_handlers = handlers
 
         if cached_config:
@@ -788,6 +793,7 @@ class GCPConfig(Config):
         config = cast(GCPConfig, cfg)
         config._region = dct["region"]
         config._redis_host = dct["redis_host"]
+        config._redis_password = dct["redis_password"]
 
     def serialize(self) -> Dict:
         """Serialize configuration to dictionary for cache storage.
@@ -802,6 +808,7 @@ class GCPConfig(Config):
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
             "redis_host": self._redis_host,
+            "redis_password": self._redis_password,
         }
         return out
 
