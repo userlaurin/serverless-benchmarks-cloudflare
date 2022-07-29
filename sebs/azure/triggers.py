@@ -24,6 +24,8 @@ Example:
 
 import concurrent.futures
 import uuid
+import time
+import requests
 from typing import Any, Dict, Optional  # noqa
 
 from sebs.azure.config import AzureResources
