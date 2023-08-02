@@ -21,7 +21,7 @@ from sebs import sebs_types as types
 from sebs.local import Local
 from sebs.cache import Cache
 from sebs.config import SeBSConfig
-from sebs.code_package import CodePackage
+from sebs.benchmark import Benchmark
 from sebs.faas.system import System as FaaSSystem
 from sebs.faas.storage import PersistentStorage
 from sebs.faas.nosql import NoSQLStorage
@@ -285,7 +285,7 @@ class SeBS(LoggingBase):
         return ExperimentConfig.deserialize(config)
 
     def get_experiment(
-        self, experiment_type: str, config: dict, is_workflow: bool, logging_filename: Optional[str] = None
+        self, experiment_type: str, config: dict, logging_filename: Optional[str] = None
     ) -> Experiment:
         """Get an experiment implementation for a specific experiment type.
 
@@ -326,36 +326,6 @@ class SeBS(LoggingBase):
             raise RuntimeError(f"Experiment {experiment_type} not supported!")
 
         # Create and configure the experiment
-        experiment = implementations[experiment_type](self.get_experiment_config(config))
-        experiment.logging_handlers = self.generate_logging_handlers(
-            logging_filename=logging_filename
-        )
-        return experiment
-
-    def get_benchmark(
-        self,
-        name: str,
-        deployment: FaaSSystem,
-        config: ExperimentConfig,
-        logging_filename: Optional[str] = None,
-    ) -> Benchmark:
-        """Get a benchmark implementation for a specific benchmark.
-
-        This method creates and returns a benchmark implementation for the
-        specified benchmark name. It configures the benchmark with the
-        appropriate deployment, configuration, and resources.
-
-        Args:
-            name: Name of the benchmark to create (e.g., "210.thumbnailer")
-            deployment: FaaS system deployment client
-            config: Experiment configuration
-            logging_filename: Optional filename for logs
-
-        Returns:
-            An initialized benchmark implementation
-        """
-        # Create and configure the benchmark
-        benchmark = Benchmark(
             name,
             deployment.name(),
             config,

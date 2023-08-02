@@ -1,6 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
-from typing import Optional, List, Callable, Union, Dict, Type, Tuple
+from typing import Optional, List, Callable, Union, Dict, Type
 import json
 
 
@@ -126,12 +126,12 @@ class Generator(ABC):
             else:
                 raise ValueError("Unknown encoded state returned.")
 
-        definition = self.postprocess(payloads)
+        definition = self.postprocess(states, payloads)
 
         return self._export_func(definition)
 
-    def postprocess(self, payloads: List[dict]) -> dict:
-        return payloads
+    def postprocess(self, states: List[State], payloads: List[dict]) -> dict:
+        return {s.name: p for (s, p) in zip(states, payloads)}
 
     def encode_state(self, state: State) -> Union[dict, List[dict]]:
         if isinstance(state, Task):
@@ -140,10 +140,6 @@ class Generator(ABC):
             return self.encode_switch(state)
         elif isinstance(state, Map):
             return self.encode_map(state)
-        elif isinstance(state, Repeat):
-            return self.encode_repeat(state)
-        elif isinstance(state, Loop):
-            return self.encode_loop(state)
         else:
             raise ValueError(f"Unknown state of type {type(state)}.")
 
@@ -157,20 +153,4 @@ class Generator(ABC):
 
     @abstractmethod
     def encode_map(self, state: Map) -> Union[dict, List[dict]]:
-        pass
-
-    def encode_repeat(self, state: Repeat) -> Union[dict, List[dict]]:
-        tasks = []
-        for i in range(state.count):
-            name = state.name if i == 0 else f"{state.name}_{i}"
-            next = state.next if i == state.count - 1 else f"{state.name}_{i+1}"
-            task = Task(name, state.func_name, next)
-
-            res = self.encode_task(task)
-            tasks += res if isinstance(res, list) else [res]
-
-        return tasks
-
-    @abstractmethod
-    def encode_loop(self, state: Loop) -> Union[dict, List[dict]]:
         pass

@@ -23,7 +23,7 @@ import time
 from datetime import datetime
 from typing import Dict, List, TYPE_CHECKING, Union
 
-from sebs.code_package import CodePackage
+from sebs.benchmark import Benchmark
 from sebs.faas.system import System as FaaSSystem
 from sebs.experiments.experiment import Experiment
 from sebs.experiments.config import Config as ExperimentConfig
@@ -65,7 +65,7 @@ class CodePackageSize:
             settings["code_package_end"],
             settings["code_package_points"],
         )
-        from sebs.utils import find_package_code
+        from sebs.utils import find_benchmark
 
         # Use the clock synchronization benchmark as a base
         self._benchmark_path = find_benchmark("030.clock-synchronization", "benchmarks")
@@ -182,7 +182,7 @@ class InvocationOverhead(Experiment):
         """
         # Import needed modules
         from sebs import SeBS  # noqa
-        from sebs.faas.benchmark import Trigger
+        from sebs.faas.function import Trigger
 
         # Get the clock-synchronization benchmark
         self._benchmark = sebs_client.get_benchmark(

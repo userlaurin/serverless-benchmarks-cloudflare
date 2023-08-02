@@ -379,7 +379,7 @@ class AzureResources(Resources):
             out["cosmosdb_account"] = self._cosmosdb_account.serialize()
         if self._data_storage_account:
             out["data_storage_account"] = self._data_storage_account.serialize()
-        return out
+        return {**super().serialize(), **out}
 
     @staticmethod
     def deserialize(config: dict, cache: Cache, handlers: LoggingHandlers) -> Resources:
@@ -436,8 +436,6 @@ class AzureConfig(Config):
         super().__init__(name="azure")
         self._credentials = credentials
         self._resources = resources
-        self._redis_host = redis_host
-        self._redis_password = redis_password
 
     @property
     def credentials(self) -> AzureCredentials:
@@ -486,7 +484,7 @@ class AzureConfig(Config):
         cached_config = cache.get_config("azure")
         credentials = cast(AzureCredentials, AzureCredentials.deserialize(config, cache, handlers))
         resources = cast(AzureResources, AzureResources.deserialize(config, cache, handlers))
-        config_obj = AzureConfig(credentials, resources, cached_config["redis_host"], cached_config["redis_password"])
+        config_obj = AzureConfig(credentials, resources)
         config_obj.logging_handlers = handlers
         # Load cached values
         if cached_config:
@@ -522,7 +520,5 @@ class AzureConfig(Config):
             "region": self._region,
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
-            "redis_host": self._redis_host,
-            "redis_password": self._redis_password,
         }
         return out

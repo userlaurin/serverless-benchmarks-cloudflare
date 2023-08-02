@@ -277,7 +277,6 @@ class Resources(ABC, LoggingBase):
         """
         pass
 
-    @abstractmethod
     def serialize(self) -> dict:
         """Serialize resources to dictionary for cache storage.
 

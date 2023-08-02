@@ -811,7 +811,7 @@ class OpenWhisk(System):
             trigger = HTTPTrigger(function.name, url)
             trigger.logging_handlers = self.logging_handlers
             function.add_trigger(trigger)
-            self.cache_client.update_function(function)
+            self.cache_client.update_benchmark(function)
             return trigger
         else:
             raise RuntimeError("Not supported!")

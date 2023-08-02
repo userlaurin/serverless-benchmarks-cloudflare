@@ -677,8 +677,6 @@ class GCPConfig(Config):
         super().__init__(name="gcp")
         self._credentials = credentials
         self._resources = resources
-        self._redis_host = redis_host
-        self._redis_password = redis_password
 
         self._deployment_config = GCPConfiguration()
 
@@ -731,38 +729,6 @@ class GCPConfig(Config):
     def redis_password(self) -> str:
         return self._redis_password
 
-    @staticmethod
-    def deserialize(config: Dict, cache: Cache, handlers: LoggingHandlers) -> "Config":
-        """Deserialize GCP configuration from dictionary and cache.
-
-        Loads complete GCP configuration including credentials and resources.
-        Validates consistency between cached and provided configuration values,
-        updating cache with new user-provided values when they differ.
-
-        Args:
-            config: Configuration dictionary with GCP settings
-            cache: Cache instance for storing/retrieving configuration
-            handlers: Logging handlers for status reporting
-
-        Returns:
-            Initialized GCPConfig instance
-        """
-        cached_config = cache.get_config("gcp")
-        credentials = cast(GCPCredentials, GCPCredentials.deserialize(config, cache, handlers))
-        resources = cast(GCPResources, GCPResources.deserialize(config, cache, handlers))
-        config_obj = GCPConfig(credentials, resources, cached_config["redis_host"], cached_config["redis_password"])
-        config_obj.logging_handlers = handlers
-
-        if cached_config:
-            config_obj.logging.info("Loading cached config for GCP")
-            GCPConfig.initialize(config_obj, cached_config)
-        else:
-            config_obj.logging.info("Using user-provided config for GCP")
-            GCPConfig.initialize(config_obj, config)
-
-        # deployment configuration is never loaded from cache - always fresh!
-        if "configuration" in config:
-            GCPConfiguration.initialize(config_obj.deployment_config, config["configuration"])
 
         # mypy makes a mistake here
         updated_keys: List[Tuple[str, List[str]]] = [("region", ["gcp", "region"])]  # type: ignore
@@ -792,8 +758,6 @@ class GCPConfig(Config):
         """
         config = cast(GCPConfig, cfg)
         config._region = dct["region"]
-        config._redis_host = dct["redis_host"]
-        config._redis_password = dct["redis_password"]
 
     def serialize(self) -> Dict:
         """Serialize configuration to dictionary for cache storage.
@@ -807,8 +771,6 @@ class GCPConfig(Config):
             "region": self._region,
             "credentials": self._credentials.serialize(),
             "resources": self._resources.serialize(),
-            "redis_host": self._redis_host,
-            "redis_password": self._redis_password,
         }
         return out
 

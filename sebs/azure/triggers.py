@@ -23,13 +23,10 @@ Example:
 """
 
 import concurrent.futures
-import uuid
-import time
-import requests
 from typing import Any, Dict, Optional  # noqa
 
 from sebs.azure.config import AzureResources
-from sebs.faas.benchmark import ExecutionResult, Trigger
+from sebs.faas.function import ExecutionResult, Trigger
 
 
 class AzureTrigger(Trigger):
