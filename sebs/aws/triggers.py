@@ -13,6 +13,7 @@ Key classes:
 import base64
 import concurrent.futures
 import datetime
+import uuid
 import json
 from enum import Enum
 from typing import Dict, Optional  # noqa

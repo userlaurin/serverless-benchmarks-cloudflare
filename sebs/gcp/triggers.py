@@ -22,6 +22,7 @@ Example:
 
 import concurrent.futures
 import datetime
+import uuid
 import json
 from typing import Dict, Optional  # noqa
 
