@@ -23,6 +23,7 @@ Example:
 """
 
 import concurrent.futures
+import uuid
 from typing import Any, Dict, Optional  # noqa
 
 from sebs.azure.config import AzureResources
