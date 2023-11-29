@@ -285,7 +285,7 @@ class SeBS(LoggingBase):
         return ExperimentConfig.deserialize(config)
 
     def get_experiment(
-        self, experiment_type: str, config: dict, logging_filename: Optional[str] = None
+        self, experiment_type: str, config: dict,  is_workflow: bool, logging_filename: Optional[str] = None
     ) -> Experiment:
         """Get an experiment implementation for a specific experiment type.
 

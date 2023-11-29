@@ -19,21 +19,15 @@ import os
 import time
 import glob
 import shutil
-from datetime import datetime
-from enum import Enum
-from multiprocessing.pool import ThreadPool
-from typing import List, TYPE_CHECKING
-import pandas as pd
-import numpy as np
-
-from sebs.faas.system import System as FaaSSystem
-from sebs.faas.benchmark import Trigger, Benchmark, Function, Workflow, ExecutionResult
 from sebs.azure.azure import Azure
 from sebs.experiments.experiment import Experiment
 from sebs.experiments.result import Result as ExperimentResult
 from sebs.experiments.config import Config as ExperimentConfig
 from sebs.utils import serialize, download_measurements, connect_to_redis_cache
 from sebs.statistics import basic_stats, ci_tstudents, ci_le_boudec
+
+import pandas as pd
+import numpy as np
 
 # import cycle
 if TYPE_CHECKING:
@@ -335,11 +329,47 @@ class PerfCost(Experiment):
                             if first_iteration:
                                 first_iteration_request_ids.append(ret.request_id)
                                 continue
-                            if run_type == PerfCost.RunType.COLD and not ret.stats.cold_start:
-                                self.logging.info(f"Invocation {ret.request_id} is not cold!")
+
+                            was_cold_start = ret.stats.cold_start
+                            if self.is_workflow:
+                                self.logging.info(f"Downloading measurements for {ret.request_id}")
+                                payloads = _download_measurements(ret.request_id)
+                                retries = 0
+                                while not payloads and retries < 10:
+                                    self.logging.info("Failed to download measurments. Retrying...")
+                                    payloads = _download_measurements(ret.request_id)
+                                    retries += 1
+                                if retries > 0:
+                                    self.logging.info("Downloaded all measurments.")
+
+                                df = pd.DataFrame(payloads)
+                                if df.shape[0] > 0:
+                                    was_cold_start = df.sort_values(["start"]).at[0, "is_cold"]
+                                else:
+                                    raise RuntimeError(f"Did not find measurements for {ret.request_id}")
+
+                            invalid = (run_type == PerfCost.RunType.COLD and not was_cold_start) or (
+                            run_type == PerfCost.RunType.WARM and was_cold_start)
+                            if self.is_workflow:
+                                invalid = invalid or (self.num_expected_payloads != len(payloads))
+
+                            if invalid:
+                                msg = (f"Invalid invocation {ret.request_id} "
+                                       f"cold: {was_cold_start} ")
+
+                                if self.is_workflow:
+                                    msg += f"measurements: {len(payloads)}/{self.num_expected_payloads} "
+
+                                msg += f"on experiment {run_type.str()}!"
+
+                                self.logging.info(msg)
                                 incorrect.append(ret)
-                            elif run_type == PerfCost.RunType.WARM and ret.stats.cold_start:
-                                self.logging.info(f"Invocation {ret.request_id} is cold!")
+
+                            #if run_type == PerfCost.RunType.COLD and not ret.stats.cold_start:
+                            #    self.logging.info(f"Invocation {ret.request_id} is not cold!")
+                            #    incorrect.append(ret)
+                            #elif run_type == PerfCost.RunType.WARM and ret.stats.cold_start:
+                            #    self.logging.info(f"Invocation {ret.request_id} is cold!")
                             else:
                                 result.add_invocation(self._benchmark, ret)
                                 colds_count += ret.stats.cold_start
@@ -383,6 +413,28 @@ class PerfCost(Experiment):
                         self.num_expected_payloads = int(df.groupby("request_id").size().mean())
 
                         self.logging.info(f"Will be expecting {self.num_expected_payloads} measurements")
+
+                    if self.is_workflow and self.num_expected_payloads == -1:
+                        self.logging.info(f"Downloading measurements for first iterations")
+                        payloads = _download_measurements(None)
+                        retries = 0
+                        while not payloads and retries < 10:
+                            self.logging.info("Failed to download measurments. Retrying...")
+                            payloads = _download_measurements(None)
+                            retries += 1
+                        if retries > 0:
+                            self.logging.info("Downloaded all measurments.")
+
+                        df = pd.DataFrame(payloads)
+
+                        df = df[df["request_id"].isin(first_iteration_request_ids)]
+                        if df.shape[0] == 0:
+                            raise RuntimeError("Did not download any measurements. The workflow is likely to fail everytime.")
+
+                        self.num_expected_payloads = int(df.groupby("request_id").size().mean())
+
+                        self.logging.info(f"Will be expecting {self.num_expected_payloads} measurements")
+
 
                     if len(incorrect) > 0:
                         incorrect_executions.extend(incorrect)
@@ -472,18 +524,6 @@ class PerfCost(Experiment):
 
 
 
-    def process_workflow(
-        self,
-        sebs_client: "SeBS",
-        deployment_client: FaaSSystem,
-        directory: str,
-        logging_filename: str,
-        extend_time_interval: int,
-    ):
-
-        benchmark_name = self.config._experiment_configs[PerfCost.name()]["benchmark"]
-        platform = deployment_client.name()
-        result_dir = os.path.join(directory, "perf-cost", benchmark_name, platform+"_vpc_*")
 
         settings = self.config.experiment_settings(self.name())
         code_package = sebs_client.get_benchmark(
