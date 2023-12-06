@@ -20,6 +20,8 @@ import time
 import glob
 import shutil
 from sebs.azure.azure import Azure
+from sebs.aws.aws import AWS
+from sebs.gcp.gcp import GCP
 from sebs.experiments.experiment import Experiment
 from sebs.experiments.result import Result as ExperimentResult
 from sebs.experiments.config import Config as ExperimentConfig
