@@ -367,6 +367,16 @@ class Azure(System):
         package_config = CONFIG_FILES[code_package.language_name]
         wrapper_files = WRAPPER_FILES[code_package.language_name]
 
+        print(directory)
+        # Put function's resources inside a dedicated directory
+        os.mkdir(os.path.join(directory, "function"))
+        for path in os.listdir(directory):
+
+            if path in ["main_workflow.py", "run_workflow.py", "fsm.py", ".python_packages"]:
+                continue
+
+            shutil.move(os.path.join(directory, path), os.path.join(directory, "function"))
+
         main_path = os.path.join(directory, "main_workflow.py")
         if is_workflow:
             os.rename(main_path, os.path.join(directory, "main.py"))
@@ -381,7 +391,7 @@ class Azure(System):
         else:
             os.remove(main_path)
 
-        # TODO: extension to other triggers than HTTP
+        ## TODO: extension to other triggers than HTTP
         main_bindings = [
             {
                 "name": "req",
@@ -405,32 +415,49 @@ class Azure(System):
         else:
             bindings = {"function": main_bindings}
 
-        func_dirs = []
-        for file_path in glob.glob(os.path.join(directory, file_type)):
-            file = os.path.basename(file_path)
+        #func_dirs = []
+        #for file_path in glob.glob(os.path.join(directory, file_type)):
+        #    file = os.path.basename(file_path)
 
-            if file in package_config or file in wrapper_files:
-                continue
+        #    print(file)
+        #    if file in package_config or file in wrapper_files:
+        #        continue
 
-            # move file directory/f.py to directory/f/f.py
-            name, ext = os.path.splitext(file)
-            func_dir = os.path.join(directory, name)
-            func_dirs.append(func_dir)
+        #    # move file directory/f.py to directory/f/f.py
+        #    print("Move", file_path)
+        #    name, ext = os.path.splitext(file)
+        #    func_dir = os.path.join(directory, name)
+        #    func_dirs.append(func_dir)
 
-            dst_file = os.path.join(func_dir, file)
-            src_file = os.path.join(directory, file)
-            os.makedirs(func_dir)
-            shutil.move(src_file, dst_file)
+        #    dst_file = os.path.join(func_dir, file)
+        #    src_file = os.path.join(directory, file)
+        #    os.makedirs(func_dir)
+        #    shutil.move(src_file, dst_file)
 
+        #    # generate function.json
+        #    script_file = file if (name in bindings and is_workflow) else "handler.py"
+        #    payload = {
+        #        "bindings": bindings.get(name, activity_bindings),
+        #        "scriptFile": script_file,
+        #        "disabled": False,
+        #    }
+        #    dst_json = os.path.join(os.path.dirname(dst_file), "function.json")
+        #    json.dump(payload, open(dst_json, "w"), indent=2)
+        if is_workflow:
+            pass
+        else:
             # generate function.json
-            script_file = file if (name in bindings and is_workflow) else "handler.py"
+            #script_file = os.path.join("function", "handler.py")
+            script_file = os.path.join("handler.py")
             payload = {
-                "bindings": bindings.get(name, activity_bindings),
+                "bindings": bindings["function"],
                 "scriptFile": script_file,
                 "disabled": False,
             }
-            dst_json = os.path.join(os.path.dirname(dst_file), "function.json")
+            dst_json = os.path.join(directory, "function", "function.json")
+            #dst_json = os.path.join(directory, "function.json")
             json.dump(payload, open(dst_json, "w"), indent=2)
+
 
         handler_path = os.path.join(directory, WRAPPER_FILES[code_package.language_name][0])
         replace_string_in_file(handler_path, "{{REDIS_HOST}}", f'"{self.config.redis_host}"')
@@ -441,12 +468,12 @@ class Azure(System):
         replace_string_in_file(handler_path, "{{REDIS_PASSWORD}}", f'"{self.config.redis_password}"')
 
         # copy every wrapper file to respective function dirs
-        for wrapper_file in wrapper_files:
-            src_path = os.path.join(directory, wrapper_file)
-            for func_dir in func_dirs:
-                dst_path = os.path.join(func_dir, wrapper_file)
-                shutil.copyfile(src_path, dst_path)
-            os.remove(src_path)
+            #for wrapper_file in wrapper_files:
+            #    src_path = os.path.join(directory, wrapper_file)
+            #    for func_dir in func_dirs:
+            #        dst_path = os.path.join(func_dir, wrapper_file)
+            #        shutil.copyfile(src_path, dst_path)
+            #    os.remove(src_path)
 
         # generate host.json
         host_json = {
