@@ -308,7 +308,7 @@ class PerfCost(Experiment):
                             funcs, self._code_package
                         )
 
-                    time.sleep(5)
+                    time.sleep(10)
 
                     results = []
                     for i in range(0, invocations):
@@ -317,7 +317,6 @@ class PerfCost(Experiment):
                             pool.apply_async(
                                 self._trigger.sync_invoke, args=(self._benchmark_input,)
                             )
-                        )
 
                     incorrect = []
                     first_iteration_request_ids = []
@@ -436,7 +435,10 @@ class PerfCost(Experiment):
                         self.num_expected_payloads = int(df.groupby("request_id").size().mean())
 
                         self.logging.info(f"Will be expecting {self.num_expected_payloads} measurements")
-
+                        file_name = f"{run_type.str()}_{suffix}_first_iteration.csv"
+                        csv_path = os.path.join(result_dir, file_name)
+                        write_header = not os.path.exists(csv_path)
+                        df.to_csv(csv_path, index=False, mode="a", header=write_header)
 
                     if len(incorrect) > 0:
                         incorrect_executions.extend(incorrect)
@@ -535,6 +537,9 @@ class PerfCost(Experiment):
 
         for f in glob.glob(os.path.join(result_dir, "*.csv")):
             filename = os.path.splitext(os.path.basename(f))[0]
+
+            print("Filename: ", filename)
+
             processed_path = os.path.join(result_dir, filename+"_processed.csv")
             processed = "processed" in f or os.path.exists(processed_path)
             if processed:
@@ -566,6 +571,7 @@ class PerfCost(Experiment):
             else:
                 prefix = workflow_name + "___"
                 func_names = [prefix+fn for fn in df.func.unique()]
+                print("looking for", func_names)
 
             for func_name in func_names:
                 deployment_client.download_metrics(
