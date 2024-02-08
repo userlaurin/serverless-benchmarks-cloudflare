@@ -345,12 +345,14 @@ class PerfCost(Experiment):
 
                                 df = pd.DataFrame(payloads)
                                 if df.shape[0] > 0:
-                                    was_cold_start = df.sort_values(["start"]).at[0, "is_cold"]
+                                    #ensure that first invocation was warm.
+                                    df = df.sort_values(["start"]).reset_index(drop=True)
+                                    was_cold_start = df.at[0, "is_cold"]
                                 else:
                                     raise RuntimeError(f"Did not find measurements for {ret.request_id}")
 
                             invalid = (run_type == PerfCost.RunType.COLD and not was_cold_start) or (
-                            run_type == PerfCost.RunType.WARM and was_cold_start)
+                                run_type == PerfCost.RunType.WARM and was_cold_start)
                             if self.is_workflow:
                                 invalid = invalid or (self.num_expected_payloads != len(payloads))
 
@@ -366,11 +368,6 @@ class PerfCost(Experiment):
                                 self.logging.info(msg)
                                 incorrect.append(ret)
 
-                            #if run_type == PerfCost.RunType.COLD and not ret.stats.cold_start:
-                            #    self.logging.info(f"Invocation {ret.request_id} is not cold!")
-                            #    incorrect.append(ret)
-                            #elif run_type == PerfCost.RunType.WARM and ret.stats.cold_start:
-                            #    self.logging.info(f"Invocation {ret.request_id} is cold!")
                             else:
                                 result.add_invocation(self._benchmark, ret)
                                 colds_count += ret.stats.cold_start

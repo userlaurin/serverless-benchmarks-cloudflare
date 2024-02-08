@@ -372,15 +372,6 @@ class Azure(System):
         if is_workflow:
 
             main_path = os.path.join(directory, "main_workflow.py")
-            #for path in os.listdir(directory):
-
-            #    print("Visit path", path)
-
-            #    if path in ["main_workflow.py", "run_workflow.py", "fsm.py", ".python_packages"]:
-            #        continue
-
-            #    shutil.move(os.path.join(directory, path), os.path.join(directory, "function"))
-
             os.rename(main_path, os.path.join(directory, "main.py"))
 
             # Make sure we have a valid workflow benchmark
@@ -433,12 +424,10 @@ class Azure(System):
             for file_path in glob.glob(os.path.join(directory, file_type)):
                 file = os.path.basename(file_path)
 
-                print(file)
                 if file in package_config or file in wrapper_files:
                     continue
 
                 # move file directory/f.py to directory/f/f.py
-                print("Move", file_path)
                 name, ext = os.path.splitext(file)
                 func_dir = os.path.join(directory, name)
                 func_dirs.append(func_dir)
@@ -465,9 +454,30 @@ class Azure(System):
                     dst_path = os.path.join(func_dir, wrapper_file)
                     shutil.copyfile(src_path, dst_path)
                 os.remove(src_path)
+
+            for func_dir in func_dirs: 
+                handler_path = os.path.join(func_dir, WRAPPER_FILES[code_package.language_name][0])
+                if self.config.resources.redis_host is not None:
+                    replace_string_in_file(
+                        handler_path, "{{REDIS_HOST}}", f'"{self.config.resources.redis_host}"'
+                    )
+                if self.config.resources.redis_password is not None:
+                    replace_string_in_file(
+                        handler_path, "{{REDIS_PASSWORD}}", f'"{self.config.resources.redis_password}"'
+                    )
+            run_workflow_path = os.path.join(os.path.join(directory, "run_workflow", "run_workflow.py"))
+            if self.config.resources.redis_host is not None:
+                replace_string_in_file(
+                    run_workflow_path, "{{REDIS_HOST}}", f'"{self.config.resources.redis_host}"'
+                )
+            if self.config.resources.redis_password is not None:
+                replace_string_in_file(
+                    run_workflow_path, "{{REDIS_PASSWORD}}", f'"{self.config.resources.redis_password}"'
+                )
+
+
         else:
             # generate function.json
-            #script_file = os.path.join("function", "handler.py")
             script_file = os.path.join("handler.py")
             payload = {
                 "bindings": bindings["function"],
@@ -494,6 +504,11 @@ class Azure(System):
                 "id": "Microsoft.Azure.Functions.ExtensionBundle",
                 "version": "[2.*, 3.0.0)",
             },
+            #"extensions": {
+            #    "durableTask": {
+            #        "maxConcurrentActivityFunctions": 1,
+            #    }
+            #}
         }
         json.dump(host_json, open(os.path.join(directory, "host.json"), "w"), indent=2)
 

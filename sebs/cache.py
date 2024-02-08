@@ -269,7 +269,6 @@ class Cache(LoggingBase):
             keys (List[str]): Array of consecutive keys for multi-level dictionary.
         """
         with self._lock:
-            print("updating config with val =", val, "keys= ", keys)
             update_dict(self.cached_config, val, keys)
         self.config_updated = True
 
