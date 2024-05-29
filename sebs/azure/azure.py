@@ -387,7 +387,7 @@ class Azure(System):
             os.mkdir(os.path.join(directory, "function"))
             for path in os.listdir(directory):
 
-                if path in ["main_workflow.py", "run_workflow.py", "fsm.py", ".python_packages"]:
+                if path in ["main_workflow.py", "run_workflow.py", "run_subworkflow", "fsm.py", ".python_packages"]:
                     continue
 
                 shutil.move(os.path.join(directory, path), os.path.join(directory, "function"))
@@ -415,7 +415,7 @@ class Azure(System):
         ]
 
         if is_workflow:
-            bindings = {"main": main_bindings, "run_workflow": orchestrator_bindings}
+            bindings = {"main": main_bindings, "run_workflow": orchestrator_bindings, "run_subworkflow": orchestrator_bindings}
         else:
             bindings = {"function": main_bindings}
 
@@ -423,6 +423,7 @@ class Azure(System):
             func_dirs = []
             for file_path in glob.glob(os.path.join(directory, file_type)):
                 file = os.path.basename(file_path)
+                print("file: ", file)
 
                 if file in package_config or file in wrapper_files:
                     continue
