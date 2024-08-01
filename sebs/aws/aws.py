@@ -166,6 +166,8 @@ class AWS(System):
             aws_access_key_id=self.config.credentials.access_key,
             aws_secret_access_key=self.config.credentials.secret_key,
         )
+        self.system_resources.initialize_session(self.session)
+
         self.get_lambda_client()
         self.system_resources.initialize_session(self.session)
         self.initialize_resources(select_prefix=resource_prefix, quiet=quiet)
@@ -491,14 +493,14 @@ class AWS(System):
         function = cast(LambdaFunction, function)
         # We only update envs if anything new was added
         if len(envs) > 0:
-            self.client.update_function_configuration(
+            self.lambda_client.update_function_configuration(
                 FunctionName=function.name,
                 Timeout=function.config.timeout,
                 MemorySize=function.config.memory,
                 Environment={"Variables": envs},
             )
         else:
-            self.client.update_function_configuration(
+            self.lambda_client.update_function_configuration(
                 FunctionName=function.name,
                 Timeout=function.config.timeout,
                 MemorySize=function.config.memory,
