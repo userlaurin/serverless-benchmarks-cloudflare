@@ -6,7 +6,6 @@ import importlib
 
 import logging
 
-from azure.storage.blob import BlobServiceClient
 import azure.functions as func
 from redis import Redis
 
