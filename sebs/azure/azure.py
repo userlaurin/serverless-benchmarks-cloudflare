@@ -32,6 +32,7 @@ Example:
 """
 
 import datetime
+import glob
 import json
 import random
 import re
@@ -395,7 +396,7 @@ class Azure(System):
             main_path = os.path.join(directory, "main_workflow.py")
             os.remove(main_path)
 
-        ## TODO: extension to other triggers than HTTP
+        # TODO: extension to other triggers than HTTP
         main_bindings = [
             {
                 "name": "req",
