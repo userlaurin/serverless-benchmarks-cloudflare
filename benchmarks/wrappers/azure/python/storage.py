@@ -71,8 +71,9 @@ class storage:
         return client.download_blob().readall()
     
     @staticmethod
-    def get_instance(connection_string: Optional[str] = None):
+    def get_instance():
         if storage.instance is None:
+            connection_string = os.environ['STORAGE_CONNECTION_STRING']
             assert connection_string is not None
             storage.instance = storage(connection_string)
         return storage.instance
