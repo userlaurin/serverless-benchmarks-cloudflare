@@ -191,7 +191,6 @@ class Trigger(ABC, LoggingBase):
     def _http_invoke(self, payload: dict, url: str) -> ExecutionResult:
         import pycurl
         from io import BytesIO
-        import time
 
         c = pycurl.Curl()
         c.setopt(pycurl.HTTPHEADER, ["Content-Type: application/json"])
@@ -209,6 +208,16 @@ class Trigger(ABC, LoggingBase):
         conn_time = c.getinfo(pycurl.PRETRANSFER_TIME)
         receive_time = c.getinfo(pycurl.STARTTRANSFER_TIME)
 
+        if status_code != 200:
+            self.logging.error(
+                "Invocation on URL {} failed with status code {}!".format(url, status_code)
+            )
+            if len(data.getvalue()) > 0:
+                self.logging.error("Output: {}".format(data.getvalue().decode()))
+            else:
+                self.logging.error("No output provided!")
+            raise RuntimeError(f"Failed invocation of function! Output: {data.getvalue().decode()}")
+
         try:
             output = json.loads(data.getvalue())
 
@@ -224,11 +233,8 @@ class Trigger(ABC, LoggingBase):
             result.times.http_startup = conn_time
             result.times.http_first_byte_return = receive_time
             result.request_id = output["request_id"]
-            print("request_id: ", result.request_id, "end time: ", end)
             # General benchmark output parsing
             result.parse_benchmark_output(output)
-            if "output" in response:
-                result.output = response["output"]
             return result
         except json.decoder.JSONDecodeError:
             self.logging.error(
