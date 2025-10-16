@@ -1397,7 +1397,7 @@ def regression_suite(
                 test_deployment_type,
                 selected_architecture,
             ):
-                print(f"Skip test {test_name} - not supported.")
+                logging_wrapper.info(f"Skip test {test_name} - not supported.")
                 continue
 
             # Filter by benchmark name if specified
@@ -1407,7 +1407,7 @@ def regression_suite(
                 test.experiment_config = experiment_config.copy()  # type: ignore
                 tests.append(test_case)
             else:
-                print(f"Skip test {test_name}")
+                logging_wrapper.info(f"Skip test {test_name}")
 
     result = TracingStreamResult()
 
@@ -1442,13 +1442,13 @@ def regression_suite(
     # Report results
     print(f"Succesfully executed {len(result.success)} out of {len(tests)} functions")
     for suc in result.success:
-        print(f"- {suc}")
+        logging_wrapper.info(f"- {suc}")
     if len(result.failures):
-        print(
+        logging_wrapper.error(
             f"Failures when executing {len(result.failures)} out of {len(tests)} functions"
         )
         for failure in result.failures:
-            print(f"- {failure}")
+            logging_wrapper.error(f"- {failure}")
 
     # Clean up resources
     if hasattr(AzureTestSequenceNodejs, "cli"):
