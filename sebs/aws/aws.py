@@ -245,26 +245,6 @@ class AWS(System):
 
             return (jar_path, bytes_size)
 
-        CONFIG_FILES = {
-            Language.PYTHON: ["handler.py", "requirements.txt", ".python_packages"],
-            Language.NODEJS: ["handler.js", "package.json", "node_modules"],
-        }
-        package_config = CONFIG_FILES[language_name]
-
-        if language in [Language.PYTHON, Language.NODEJS]:
-            package_config = CONFIG_FILES[language]
-            function_dir = os.path.join(directory, "function")
-            os.makedirs(function_dir)
-            # move all files to 'function' except handler.py
-            for file in os.listdir(directory):
-                if file not in package_config:
-                    file = os.path.join(directory, file)
-                    shutil.move(file, function_dir)
-
-            # FIXME: use zipfile
-            # create zip with hidden directory but without parent directory
-            execute("zip -qu -r9 {}.zip * .".format(benchmark), shell=True, cwd=directory)
-            benchmark_archive = "{}.zip".format(os.path.join(directory, benchmark))
 
             self.logging.info("Created {} archive".format(benchmark_archive))
 
