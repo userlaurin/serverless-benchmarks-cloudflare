@@ -687,7 +687,7 @@ class Azure(System):
 
     def update_function(
         self,
-        function: Function,
+        function: CloudBenchmark,
         code_package: Benchmark,
         system_variant: SystemVariant,
         container_uri: str | None,
@@ -983,6 +983,7 @@ class Azure(System):
 
         # check if function does not exist
         # no API to verify existence
+        function_storage_account: AzureResources.Storage | None = None
         try:
             ret = self.cli_instance.execute(
                 (
