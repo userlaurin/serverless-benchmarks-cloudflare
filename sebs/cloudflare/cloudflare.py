@@ -658,7 +658,9 @@ class Cloudflare(System):
             worker_url = self._build_workers_dev_url(worker_name, account_id_val)
 
             if container_deployment:
-                container_name = self._containers_deployment._container_name_from_worker(worker_name)
+                container_name = self._containers_deployment._container_name_from_worker(
+                    worker_name
+                )
                 # Cloudflare compares the newly pushed registry image against the
                 # image currently running in the container worker. If the image digest
                 # has changed, wrangler deploy triggers a rollout: Cloudflare pulls the
