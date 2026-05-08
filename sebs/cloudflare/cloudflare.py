@@ -785,7 +785,10 @@ class Cloudflare(System):
                         continue
                     self.logging.info(f"Resolved container ID: {container_id}")
 
-                url = f"{self._api_base_url}/accounts/{account_id}/containers/applications/{container_id}"
+                url = (
+                    f"{self._api_base_url}/accounts/{account_id}"
+                    f"/containers/applications/{container_id}"
+                )
                 resp = requests.get(url, headers=headers, timeout=30)
                 if resp.status_code == 200:
                     data = resp.json().get("result", resp.json())
@@ -808,9 +811,9 @@ class Cloudflare(System):
                         # first benchmark invocation does not hit a cold Durable Object.
                         # The top-level `instances` field is the configured/desired count,
                         # not the runtime state. Actual readiness is in health.instances:
-                        #   healthy  — booted, passed health check, ready to serve (what we need > 0)
+                        #   healthy  — passed health check, ready to serve
                         #   starting — still booting (image pull + firecracker init)
-                        #   active   — currently handling a request (always 0 until first invocation)
+                        #   active   — currently handling a request (0 until first invocation)
                         # The top-level `instances` field equals max_instances + 1 in practice:
                         # Cloudflare appears to count one extra Durable Object coordination
                         # instance that never appears as healthy. The `health.instances`
@@ -834,7 +837,8 @@ class Cloudflare(System):
                             return
                         self.logging.info(
                             f"Container {container_name} awaiting all instances to become healthy "
-                            f"(healthy={healthy}/{max_instances}, starting={starting}, {elapsed}s elapsed)"
+                            f"(healthy={healthy}/{max_instances}, starting={starting}, "
+                            f"{elapsed}s elapsed)"
                         )
                 else:
                     self.logging.info(
