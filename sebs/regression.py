@@ -1212,6 +1212,7 @@ class CloudflareTestSequencePythonWorkers(
         config_copy = copy.deepcopy(cloud_config)
         config_copy["experiments"]["architecture"] = architecture
         config_copy["experiments"]["container_deployment"] = False
+        config_copy["experiments"]["system_variant"] = "workers"
 
         f = f"regression_{deployment_name}_{benchmark_name}_{architecture}_{deployment_type}.log"
         deployment_client = self.client.get_deployment(
@@ -1243,6 +1244,7 @@ class CloudflareTestSequencePythonContainers(
         config_copy = copy.deepcopy(cloud_config)
         config_copy["experiments"]["architecture"] = architecture
         config_copy["experiments"]["container_deployment"] = True
+        config_copy["experiments"]["system_variant"] = "container"
 
         f = f"regression_{deployment_name}_{benchmark_name}_{architecture}_{deployment_type}.log"
         deployment_client = self.client.get_deployment(
@@ -1274,6 +1276,7 @@ class CloudflareTestSequenceNodejsWorkers(
         config_copy = copy.deepcopy(cloud_config)
         config_copy["experiments"]["architecture"] = architecture
         config_copy["experiments"]["container_deployment"] = False
+        config_copy["experiments"]["system_variant"] = "workers"
 
         f = f"regression_{deployment_name}_{benchmark_name}_{architecture}_{deployment_type}.log"
         deployment_client = self.client.get_deployment(
@@ -1305,6 +1308,7 @@ class CloudflareTestSequenceNodejsContainers(
         config_copy = copy.deepcopy(cloud_config)
         config_copy["experiments"]["architecture"] = architecture
         config_copy["experiments"]["container_deployment"] = True
+        config_copy["experiments"]["system_variant"] = "container"
 
         f = f"regression_{deployment_name}_{benchmark_name}_{architecture}_{deployment_type}.log"
         deployment_client = self.client.get_deployment(
