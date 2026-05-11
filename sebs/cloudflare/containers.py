@@ -48,6 +48,7 @@ class CloudflareContainersDeployment:
         self.system_resources = system_resources
         self._base_image: Optional[str] = None
         self._cli: Optional[CloudflareCLI] = None
+        self.max_instances: int = 10
 
     def _get_cli(self) -> CloudflareCLI:
         """Get or initialize the Cloudflare CLI container."""
@@ -94,6 +95,7 @@ class CloudflareContainersDeployment:
         # Update basic configuration
         config["name"] = worker_name
         config["account_id"] = account_id
+        config["containers"][0]["max_instances"] = self.max_instances
 
         if container_uri and container_uri.startswith("registry.cloudflare.com"):
             # Pre-built image already pushed to Cloudflare registry — point wrangler

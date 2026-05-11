@@ -249,6 +249,7 @@ class CloudflareConfig(Config):
         super().__init__(name="cloudflare")
         self._credentials = credentials
         self._resources = resources
+        self._max_instances: int = 10
 
     @staticmethod
     def typename() -> str:
@@ -265,12 +266,19 @@ class CloudflareConfig(Config):
         """Cloudflare resource identifiers for this deployment."""
         return self._resources
 
+    @property
+    def max_instances(self) -> int:
+        """Maximum number of container instances for container deployments."""
+        return self._max_instances
+
     @staticmethod
     def initialize(cfg: Config, dct: dict):
         """Apply region and other fields from a config dictionary to an existing instance."""
         config = cast(CloudflareConfig, cfg)
         # Cloudflare Workers are globally distributed, no region needed
         config._region = dct.get("region", "global")
+        if "max_instances" in dct:
+            config._max_instances = int(dct["max_instances"])
 
     @staticmethod
     def deserialize(config: dict, cache: Cache, handlers: LoggingHandlers) -> Config:

@@ -623,6 +623,8 @@ class Cloudflare(System):
             self.logging.info(f"Image pushed to: {container_uri}")
 
         # Generate wrangler.toml for this worker (uses registry URI if available)
+        if container_deployment:
+            self._containers_deployment.max_instances = self.config.max_instances
         self._generate_wrangler_toml(
             worker_name,
             package_dir,
