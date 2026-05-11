@@ -99,6 +99,8 @@
         "type": "minio"
       }
     },
+    "cloudflare": {
+    },
     "openwhisk": {
       "shutdownStorage": false,
       "removeCluster": false,
